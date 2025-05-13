@@ -49,6 +49,9 @@ int main(const int argc, char* argv[])
     {
         processInput(window);
 
+        glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT);
+
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
