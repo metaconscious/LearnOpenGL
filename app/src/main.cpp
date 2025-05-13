@@ -3,6 +3,13 @@
 
 #include <print>
 
+void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
+                                    const int width,
+                                    const int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 int main(const int argc, char* argv[])
 {
     glfwInit();
@@ -27,6 +34,17 @@ int main(const int argc, char* argv[])
         std::println(stderr, "Failed to initialize GLAD");
         return -1;
     }
+
+    glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
+
+    while (!glfwWindowShouldClose(window))
+    {
+        // Note: double buffer is used by default for modern OpenGL
+        glfwSwapBuffers(window); // Swap back buffer to front as front buffer
+        glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
+    }
+
+    glfwTerminate();
 
     return 0;
 }
