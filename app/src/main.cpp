@@ -10,6 +10,14 @@ void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
     glViewport(0, 0, width, height);
 }
 
+void processInput(GLFWwindow* window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+    {
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+}
+
 int main(const int argc, char* argv[])
 {
     glfwInit();
@@ -39,6 +47,8 @@ int main(const int argc, char* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
+        processInput(window);
+
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
