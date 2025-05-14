@@ -7,10 +7,16 @@
 #include <ranges>
 
 float vertices[]{
-    //x,   y,    z
-    -.5f, -.5f, .0f, // 0
-    .5f, -.5f, .0f, // 1
-    .0f, .5f, .0f // 2
+    0.5f, 0.5f, 0.0f, // top right
+    0.5f, -0.5f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, // bottom left
+    -0.5f, 0.5f, 0.0f // top left
+};
+
+unsigned int indices[]{
+    // note that we start from 0!
+    0, 1, 3, // first Triangle
+    1, 2, 3 // second Triangle
 };
 
 [[nodiscard]] std::string readAll(const std::filesystem::path& filepath)
@@ -147,19 +153,27 @@ int main(const int argc, char* argv[])
     GLuint vertexBufferObject{};
     glGenBuffers(1, &vertexBufferObject);
 
+    GLuint elementBufferObject{};
+    glGenBuffers(1, &elementBufferObject);
+
     glBindVertexArray(vertexArrayObject);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glUseProgram(shaderProgram);;
 
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
     glEnableVertexAttribArray(0);
 
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Optional
 
-    glBindVertexArray(0);
+    glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Since VAO is already unbounded, it's safe to unbind EBO now.
 
     while (!glfwWindowShouldClose(window))
     {
@@ -170,7 +184,7 @@ int main(const int argc, char* argv[])
 
         glUseProgram(shaderProgram);
         glBindVertexArray(vertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
@@ -179,6 +193,7 @@ int main(const int argc, char* argv[])
 
     glDeleteVertexArrays(1, &vertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
+    glDeleteBuffers(1, &elementBufferObject);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
