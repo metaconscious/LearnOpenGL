@@ -27,7 +27,7 @@ unsigned int indices[]{
         throw std::runtime_error("Could not open file");
     }
 
-    const auto fileSize = std::filesystem::file_size(filepath);
+    const auto fileSize{ std::filesystem::file_size(filepath) };
     if (fileSize == 0)
     {
         std::println(stderr, "Reading an empty file: {}", filepath.string());
