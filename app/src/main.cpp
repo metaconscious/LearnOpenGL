@@ -182,7 +182,10 @@ int main(const int argc, char* argv[])
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
+        const auto ourColor{ glGetUniformLocation(shaderProgram, "ourColor") };
+
         glUseProgram(shaderProgram);
+        glUniform4f(ourColor, 1.0f, 0.5f, 0.2f, 1.0f);
         glBindVertexArray(vertexArrayObject);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
