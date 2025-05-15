@@ -5,12 +5,20 @@
 #include <fstream>
 #include <print>
 #include <ranges>
+#include <thread>
 
-float vertices[]{
+float vertices0[]{
     //x,   y,    z
-    -.5f, -.5f, .0f, // 0
-    .5f, -.5f, .0f, // 1
-    .0f, .5f, .0f // 2
+    -.5f, 0.0f, 0.0f, // 0
+    0.5f, 0.0f, 0.0f, // 1
+    0.0f, 0.5f, 0.0f, // 2
+};
+
+float vertices1[]{
+    //x,   y,    z
+    -.5f, 0.0f, 0.0f, // 0
+    0.5f, 0.0f, 0.0f, // 1
+    0.0f, -.5f, 0.0f, // 2
 };
 
 [[nodiscard]] std::string readAll(const std::filesystem::path& filepath)
@@ -123,23 +131,39 @@ int main(const int argc, char* argv[])
 
     checkShaderCompilingSuccessfulness(vertexShader);
 
-    const auto fragmentShaderSource{ readAll("shaders/fragment.glsl") };
-    const auto* fragmentShaderSourceRaw{ fragmentShaderSource.c_str() };
-    const auto fragmentShader{ glCreateShader(GL_FRAGMENT_SHADER) };
-    glShaderSource(fragmentShader, 1, &fragmentShaderSourceRaw, nullptr);
-    glCompileShader(fragmentShader);
+    const auto fragmentShader0Source{ readAll("shaders/fragment0.glsl") };
+    const auto* fragmentShader0SourceRaw{ fragmentShader0Source.c_str() };
+    const auto fragmentShader0{ glCreateShader(GL_FRAGMENT_SHADER) };
+    glShaderSource(fragmentShader0, 1, &fragmentShader0SourceRaw, nullptr);
+    glCompileShader(fragmentShader0);
 
-    checkShaderCompilingSuccessfulness(fragmentShader);
+    checkShaderCompilingSuccessfulness(fragmentShader0);
 
-    const auto shaderProgram{ glCreateProgram() };
-    glAttachShader(shaderProgram, vertexShader);
-    glAttachShader(shaderProgram, fragmentShader);
-    glLinkProgram(shaderProgram);
+    const auto fragmentShader1Source{ readAll("shaders/fragment1.glsl") };
+    const auto* fragmentShader1SourceRaw{ fragmentShader1Source.c_str() };
+    const auto fragmentShader1{ glCreateShader(GL_FRAGMENT_SHADER) };
+    glShaderSource(fragmentShader1, 1, &fragmentShader1SourceRaw, nullptr);
+    glCompileShader(fragmentShader1);
 
-    checkProgramLinkageSuccessfulness(shaderProgram);
+    checkShaderCompilingSuccessfulness(fragmentShader1);
+
+    const auto shaderProgram0{ glCreateProgram() };
+    glAttachShader(shaderProgram0, vertexShader);
+    glAttachShader(shaderProgram0, fragmentShader0);
+    glLinkProgram(shaderProgram0);
+
+    checkProgramLinkageSuccessfulness(shaderProgram0);
+
+    const auto shaderProgram1{ glCreateProgram() };
+    glAttachShader(shaderProgram1, vertexShader);
+    glAttachShader(shaderProgram1, fragmentShader1);
+    glLinkProgram(shaderProgram1);
+
+    checkProgramLinkageSuccessfulness(shaderProgram1);
 
     glDeleteShader(vertexShader);
-    glDeleteShader(fragmentShader);
+    glDeleteShader(fragmentShader0);
+    glDeleteShader(fragmentShader1);
 
     GLuint vertexArrayObjects[2]{};
     glGenVertexArrays(2, vertexArrayObjects);
@@ -150,22 +174,24 @@ int main(const int argc, char* argv[])
     glBindVertexArray(vertexArrayObjects[0]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices0), vertices0, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(decltype(*vertices)), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(decltype(*vertices0)), nullptr);
     glEnableVertexAttribArray(0);
 
     glBindVertexArray(vertexArrayObjects[1]);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(decltype(*vertices)), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(decltype(*vertices1)), nullptr);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(0);
+
+    std::uint_fast8_t flag{ 1 };
 
     while (!glfwWindowShouldClose(window))
     {
@@ -174,10 +200,11 @@ int main(const int argc, char* argv[])
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        glUseProgram(shaderProgram0);
         glBindVertexArray(vertexArrayObjects[0]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        glUseProgram(shaderProgram1);
         glBindVertexArray(vertexArrayObjects[1]);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
@@ -188,7 +215,8 @@ int main(const int argc, char* argv[])
 
     glDeleteVertexArrays(2, vertexArrayObjects);
     glDeleteBuffers(2, vertexBufferObjects);
-    glDeleteProgram(shaderProgram);
+    glDeleteProgram(shaderProgram0);
+    glDeleteProgram(shaderProgram1);
 
     glfwTerminate();
 
