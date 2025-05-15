@@ -6,11 +6,16 @@
 #include <print>
 #include <ranges>
 
-float vertices[]{
+GLfloat vertices[]{
     //x,   y,    z
-    -.5f, -.5f, .0f, // 0
-    .5f, -.5f, .0f, // 1
-    .0f, .5f, .0f // 2
+    0.0f, -.5f, 0.0f, // 0
+    -.5f, 0.0f, 0.0f, // 1
+    0.5f, 0.0f, 0.0f, // 2
+    0.0f, 0.5f, 0.0f, // 3
+};
+
+GLuint indices[]{
+    0, 1, 2, 1, 2, 3
 };
 
 [[nodiscard]] std::string readAll(const std::filesystem::path& filepath)
@@ -147,19 +152,25 @@ int main(const int argc, char* argv[])
     GLuint vertexBufferObject{};
     glGenBuffers(1, &vertexBufferObject);
 
+    GLuint elementBufferObject{};
+    glGenBuffers(1, &elementBufferObject);
+
     glBindVertexArray(vertexArrayObject);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glUseProgram(shaderProgram);;
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(decltype(vertices)), nullptr);
     glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindVertexArray(0);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -170,7 +181,7 @@ int main(const int argc, char* argv[])
 
         glUseProgram(shaderProgram);
         glBindVertexArray(vertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
@@ -179,6 +190,7 @@ int main(const int argc, char* argv[])
 
     glDeleteVertexArrays(1, &vertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
+    glDeleteBuffers(1, &elementBufferObject);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
