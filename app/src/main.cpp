@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <print>
@@ -185,7 +186,7 @@ int main(const int argc, char* argv[])
         const auto ourColor{ glGetUniformLocation(shaderProgram, "ourColor") };
 
         glUseProgram(shaderProgram);
-        glUniform4f(ourColor, 1.0f, 0.5f, 0.2f, 1.0f);
+        glUniform4f(ourColor, 1.0f, 0.5f, static_cast<float>(std::sin(glfwGetTime())) / 2.0f + 0.5f, 1.0f);
         glBindVertexArray(vertexArrayObject);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
