@@ -16,7 +16,7 @@ namespace lgl
     class Shader
     {
     public:
-        [[nodiscard]] static Shader LoadShader(const std::filesystem::path& vertexShaderFile,
+        [[nodiscard]] static Shader load(const std::filesystem::path& vertexShaderFile,
                                                const std::filesystem::path& fragmentShaderFile);
 
         explicit Shader(GLuint program);

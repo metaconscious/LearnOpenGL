@@ -58,7 +58,7 @@ int main(const int argc, char* argv[])
 
     glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
 
-    const auto shader{ lgl::Shader::LoadShader("shaders/vertex.glsl", "shaders/fragment.glsl") };
+    const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
     GLuint vertexArrayObject{};
     glGenVertexArrays(1, &vertexArrayObject);
