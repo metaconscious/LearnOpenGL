@@ -10,5 +10,13 @@ add_custom_command(
 )
 add_custom_target(copy_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shaders.timestamp)
 
+file(GLOB APP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+add_library(LearnOpenGLLibrary ${APP_SOURCES})
+target_include_directories(LearnOpenGLLibrary PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(LearnOpenGLLibrary PRIVATE OpenGL::GL glfw glad glm::glm)
+
 add_executable(LearnOpenGL src/main.cpp)
-target_link_libraries(LearnOpenGL OpenGL::GL glfw glad)
+target_link_libraries(LearnOpenGL PRIVATE OpenGL::GL glfw glad glm::glm)
