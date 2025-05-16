@@ -1,3 +1,5 @@
+#include "app/Shader.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
@@ -7,7 +9,6 @@
 #include <print>
 #include <ranges>
 
-#include "../include/app/Shader.h"
 
 float verticesWithColors[] = {
     // positions         // colors
