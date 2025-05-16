@@ -8,8 +8,7 @@
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
-#include <optional>
-#include <print>
+#include <filesystem>
 #include <string_view>
 
 namespace lgl
@@ -17,6 +16,11 @@ namespace lgl
     class Shader
     {
     public:
+        [[nodiscard]] static Shader LoadShader(const std::filesystem::path& vertexShaderFile,
+                                               const std::filesystem::path& fragmentShaderFile);
+
+        explicit Shader(GLuint program);
+
         [[nodiscard]] GLuint program() const;
 
         [[nodiscard]] GLint getUniformLocation(std::string_view name) const;
@@ -26,6 +30,8 @@ namespace lgl
         {
             setUniform(getUniformLocation(name), std::forward<Args>(args)...);
         }
+
+        void use() const;
 
     private:
         GLuint m_program;
