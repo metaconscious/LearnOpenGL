@@ -11,8 +11,8 @@
 
 float verticesWithColors[] = {
     // positions         // colors
-    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+    0.5f, -.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+    -.5f, -.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
     0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top
 };
 
@@ -102,6 +102,7 @@ int main(const int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT);
 
         shader.use();
+        shader.setUniform("aOffset", static_cast<float>(std::sin(glfwGetTime())) / 4.0f + 0.25f, 0.0f, 0.0f);
         glBindVertexArray(vertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 3);
 

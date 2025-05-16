@@ -17,7 +17,7 @@ namespace lgl
     {
     public:
         [[nodiscard]] static Shader load(const std::filesystem::path& vertexShaderFile,
-                                               const std::filesystem::path& fragmentShaderFile);
+                                         const std::filesystem::path& fragmentShaderFile);
 
         explicit Shader(GLuint program);
 
@@ -26,10 +26,7 @@ namespace lgl
         [[nodiscard]] GLint getUniformLocation(std::string_view name) const;
 
         template<typename... Args>
-        void setUniform(const std::string_view name, Args... args)
-        {
-            setUniform(getUniformLocation(name), std::forward<Args>(args)...);
-        }
+        void setUniform(std::string_view name, Args... args) const;
 
         void use() const;
 
@@ -72,6 +69,12 @@ namespace lgl
         static void setUniform(GLint location, const glm::uvec4& value);
         static void setUniform(GLint location, const glm::bvec4& value);
     };
+
+    template<typename... Args>
+    void Shader::setUniform(const std::string_view name, Args... args) const
+    {
+        setUniform(getUniformLocation(name), std::forward<Args>(args)...);
+    }
 } // lgl
 
 #endif //LEARNOPENGL_APP_SHADER_H
