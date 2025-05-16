@@ -7,17 +7,11 @@
 #include <print>
 #include <ranges>
 
-float vertices[]{
-    0.5f, 0.5f, 0.0f, // top right
-    0.5f, -0.5f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f // top left
-};
-
-unsigned int indices[]{
-    // note that we start from 0!
-    0, 1, 3, // first Triangle
-    1, 2, 3 // second Triangle
+float verticesWithColors[] = {
+    // positions         // colors
+    0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom right
+    -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, // bottom left
+    0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f // top
 };
 
 [[nodiscard]] std::string readAll(const std::filesystem::path& filepath)
@@ -154,21 +148,26 @@ int main(const int argc, char* argv[])
     GLuint vertexBufferObject{};
     glGenBuffers(1, &vertexBufferObject);
 
-    GLuint elementBufferObject{};
-    glGenBuffers(1, &elementBufferObject);
-
     glBindVertexArray(vertexArrayObject);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticesWithColors), verticesWithColors, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glUseProgram(shaderProgram);;
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+    glVertexAttribPointer(0,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          6 * sizeof(std::ranges::range_value_t<decltype(verticesWithColors)>),
+                          nullptr);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          6 * sizeof(std::ranges::range_value_t<decltype(verticesWithColors)>),
+                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(verticesWithColors)>) * 3));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Optional
 
@@ -183,12 +182,9 @@ int main(const int argc, char* argv[])
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        const auto ourColor{ glGetUniformLocation(shaderProgram, "ourColor") };
-
         glUseProgram(shaderProgram);
-        glUniform4f(ourColor, 1.0f, 0.5f, static_cast<float>(std::sin(glfwGetTime())) / 2.0f + 0.5f, 1.0f);
         glBindVertexArray(vertexArrayObject);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
@@ -197,7 +193,6 @@ int main(const int argc, char* argv[])
 
     glDeleteVertexArrays(1, &vertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
-    glDeleteBuffers(1, &elementBufferObject);
     glDeleteProgram(shaderProgram);
 
     glfwTerminate();
