@@ -4,31 +4,13 @@
 
 #include "app/Shader.h"
 
+#include "app/utilities.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <fstream>
 #include <print>
 
-[[nodiscard]] std::string readAll(const std::filesystem::path& filepath)
-{
-    std::ifstream file{ filepath, std::ios::binary };
-    if (!file.is_open())
-    {
-        std::println(stderr, "Failed to open file at '{}'", filepath.string());
-        throw std::runtime_error("Could not open file");
-    }
-
-    const auto fileSize{ std::filesystem::file_size(filepath) };
-    if (fileSize == 0)
-    {
-        std::println(stderr, "Reading an empty file: {}", filepath.string());
-        return {};
-    }
-
-    std::string content(fileSize, '\0');
-    file.read(content.data(), static_cast<std::streamsize>(content.size()));
-    return content;
-}
 
 void checkShaderCompilingSuccessfulness(const GLuint shader)
 {
@@ -75,7 +57,7 @@ void checkProgramLinkageSuccessfulness(const GLuint shaderProgram)
 namespace lgl
 {
     Shader Shader::load(const std::filesystem::path& vertexShaderFile,
-                              const std::filesystem::path& fragmentShaderFile)
+                        const std::filesystem::path& fragmentShaderFile)
     {
         const auto vertexShaderSource{ readAll(vertexShaderFile) };
         const auto* vertexShaderSourceRaw{ vertexShaderSource.c_str() };
