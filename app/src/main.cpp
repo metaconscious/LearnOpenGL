@@ -110,11 +110,16 @@ int main(const int argc, char* argv[])
                           reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 6));
     glEnableVertexAttribArray(2);
 
-    const auto textureImage{ lgl::loadImageAsTexture("resources/textures/container.jpg") };
+    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg") };
+    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png") };
 
-    GLuint texture{};
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
+    GLuint texture0{};
+    glGenTextures(1, &texture0);
+
+    GLuint texture1{};
+    glGenTextures(1, &texture1);
+
+    glBindTexture(GL_TEXTURE_2D, texture0);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -124,19 +129,43 @@ int main(const int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGB,
-                 textureImage.width,
-                 textureImage.height,
+                 textureImage0.width,
+                 textureImage0.height,
                  0,
                  GL_RGB,
                  GL_UNSIGNED_BYTE,
-                 textureImage.span().data());
+                 textureImage0.span().data());
     glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, texture1);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGB,
+                 textureImage1.width,
+                 textureImage1.height,
+                 0,
+                 GL_RGBA,
+                 GL_UNSIGNED_BYTE,
+                 textureImage1.span().data());
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Optional
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Since VAO is already unbounded, it's safe to unbind EBO now.
+
+    shader.use();
+    shader.setUniform("texture0", 0);
+    shader.setUniform("texture1", 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -145,7 +174,10 @@ int main(const int argc, char* argv[])
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBindTexture(GL_TEXTURE_2D, texture);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader.use();
         glBindVertexArray(vertexArrayObject);
