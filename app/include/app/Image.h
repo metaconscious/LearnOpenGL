@@ -21,9 +21,6 @@
 
 namespace lgl
 {
-    namespace fs = std::filesystem;
-    namespace gil = boost::gil;
-
     // Image format enum for supported types
     enum class ImageFormat
     {
@@ -84,7 +81,7 @@ namespace lgl
         {
             static_assert(Format != ImageFormat::Unknown, "Unknown or unsupported image format");
 
-            static TextureData read([[maybe_unused]] const fs::path& file_path)
+            static TextureData read([[maybe_unused]] const std::filesystem::path& file_path)
             {
                 throw std::runtime_error("Image format not implemented");
             }
@@ -94,12 +91,12 @@ namespace lgl
         template<>
         struct ImageReader<ImageFormat::JPEG>
         {
-            static TextureData read(const fs::path& file_path)
+            static TextureData read(const std::filesystem::path& file_path)
             {
-                gil::rgb8_image_t img;
+                boost::gil::rgb8_image_t img{};
                 try
                 {
-                    gil::read_image(file_path.string(), img, gil::jpeg_tag{});
+                    boost::gil::read_image(file_path.string(), img, boost::gil::jpeg_tag{});
                 }
                 catch (const std::exception& e)
                 {
@@ -117,13 +114,13 @@ namespace lgl
                 const auto total_size{ texture.width * texture.height * texture.channels };
                 texture.data.resize(total_size);
 
-                const auto view{ gil::view(img) };
+                const auto view{ boost::gil::view(img) };
                 std::size_t i{ 0 };
                 for (const auto& pixel : view)
                 {
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::red_t()));
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::green_t()));
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::blue_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::red_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::green_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::blue_t()));
                 }
 
                 return texture;
@@ -134,12 +131,12 @@ namespace lgl
         template<>
         struct ImageReader<ImageFormat::PNG>
         {
-            static TextureData read(const fs::path& filePath)
+            static TextureData read(const std::filesystem::path& filePath)
             {
-                gil::rgba8_image_t img{};
+                boost::gil::rgba8_image_t img{};
                 try
                 {
-                    gil::read_image(filePath.string(), img, gil::png_tag{});
+                    boost::gil::read_image(filePath.string(), img, boost::gil::png_tag{});
                 }
                 catch (const std::exception& e)
                 {
@@ -157,14 +154,14 @@ namespace lgl
                 const auto total_size{ texture.width * texture.height * texture.channels };
                 texture.data.resize(total_size);
 
-                const auto view{ gil::view(img) };
+                const auto view{ boost::gil::view(img) };
                 std::size_t i{ 0 };
                 for (const auto& pixel : view)
                 {
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::red_t()));
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::green_t()));
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::blue_t()));
-                    texture.data[i++] = static_cast<std::byte>(gil::get_color(pixel, gil::alpha_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::red_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::green_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::blue_t()));
+                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::alpha_t()));
                 }
 
                 return texture;
@@ -179,13 +176,13 @@ namespace lgl
      * @return TextureData containing the image as bytes with metadata
      * @throws std::runtime_error if file is not a valid image or cannot be read
      */
-    [[nodiscard]] TextureData loadImageAsTexture(const fs::path& filePath);
+    [[nodiscard]] TextureData loadImageAsTexture(const std::filesystem::path& filePath);
 
     // Helper method for if format is already known
     template<ImageFormat Format>
-    [[nodiscard]] TextureData loadImageAsTexture(const fs::path& file_path)
+    [[nodiscard]] TextureData loadImageAsTexture(const std::filesystem::path& file_path)
     {
-        if (!fs::exists(file_path) || !fs::is_regular_file(file_path))
+        if (!std::filesystem::exists(file_path) || !std::filesystem::is_regular_file(file_path))
         {
             throw std::runtime_error("Path does not exist or is not a regular file");
         }

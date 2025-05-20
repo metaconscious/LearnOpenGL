@@ -6,10 +6,10 @@
 
 namespace lgl
 {
-    TextureData loadImageAsTexture(const fs::path& filePath)
+    TextureData loadImageAsTexture(const std::filesystem::path& filePath)
     {
         // Check if file exists and is regular file
-        if (!fs::exists(filePath) || !fs::is_regular_file(filePath))
+        if (!std::filesystem::exists(filePath) || !std::filesystem::is_regular_file(filePath))
         {
             throw std::runtime_error("Path does not exist or is not a regular file");
         }
