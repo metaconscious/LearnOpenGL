@@ -93,6 +93,12 @@ namespace lgl
     {
     }
 
+    Shader::Shader(Shader&& other) noexcept
+    = default;
+
+    Shader& Shader::operator=(Shader&& other) noexcept
+    = default;
+
     GLuint Shader::program() const
     {
         return m_program;

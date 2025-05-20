@@ -21,6 +21,11 @@ namespace lgl
 
         explicit Shader(GLuint program);
 
+        Shader(const Shader& other) = delete;
+        Shader(Shader&& other) noexcept;
+        Shader& operator=(const Shader& other) = delete;
+        Shader& operator=(Shader&& other) noexcept;
+
         [[nodiscard]] GLuint program() const;
 
         [[nodiscard]] GLint getUniformLocation(std::string_view name) const;
