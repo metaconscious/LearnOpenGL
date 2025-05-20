@@ -14,6 +14,7 @@
 #include <filesystem>
 #include <fstream>
 #include <print>
+#include <ranges>
 #include <span>
 #include <stdexcept>
 #include <type_traits>
@@ -38,10 +39,45 @@ namespace lgl
         uint32_t height{ 0 };
         uint8_t channels{ 0 };
 
+        [[nodiscard]] bool isValid() const noexcept
+        {
+            return width > 0 && height > 0 && channels > 0 && !data.empty();
+        }
+
         // Helper for OpenGL texture creation
         [[nodiscard]] std::span<const std::byte> span() const noexcept
         {
             return data;
+        }
+
+        [[nodiscard]] TextureData flipVertically() const
+        {
+            if (!isValid())
+            {
+                return *this; // Nothing to flip
+            }
+
+            // Calculate row size in bytes
+            const auto row_size = width * channels;
+
+            return {
+                .data = std::views::iota(0u, height)
+                | std::views::transform([this, row_size](uint32_t row_idx)
+                {
+                    // Original row index from bottom to top
+                    const auto flipped_idx = height - 1 - row_idx;
+                    // Get the span for this row
+                    return std::span<const std::byte>(
+                        data.data() + flipped_idx * row_size,
+                        row_size
+                    );
+                })
+                | std::views::join
+                | std::ranges::to<std::vector<std::byte>>(),
+                .width = width,
+                .height = height,
+                .channels = channels
+            };
         }
     };
 

@@ -111,7 +111,7 @@ int main(const int argc, char* argv[])
     glEnableVertexAttribArray(2);
 
     const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg") };
-    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png") };
+    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
 
     GLuint texture0{};
     glGenTextures(1, &texture0);
