@@ -146,7 +146,7 @@ int main(const int argc, char* argv[])
 
     glTexImage2D(GL_TEXTURE_2D,
                  0,
-                 GL_RGB,
+                 GL_RGBA,
                  textureImage1.width,
                  textureImage1.height,
                  0,
