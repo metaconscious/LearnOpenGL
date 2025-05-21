@@ -25,6 +25,8 @@ unsigned int indices[]{
     1, 2, 3 // second Triangle
 };
 
+auto interpolation{ 0.2f };
+
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
                                     const int height)
@@ -34,9 +36,38 @@ void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
 
 void processInput(GLFWwindow* window)
 {
+    constexpr static auto step{ 0.01f };
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        if (interpolation < 1.0f)
+        {
+            if (const auto newInterpolation{ interpolation + step }; newInterpolation <= 1.0f)
+            {
+                interpolation = newInterpolation;
+            }
+            else
+            {
+                interpolation = 1.0f;
+            }
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        if (interpolation > 0.0f)
+        {
+            if (const auto newInterpolation{ interpolation - step }; newInterpolation >= 0.0f)
+            {
+                interpolation = newInterpolation;
+            }
+            else
+            {
+                interpolation = 0.0f;
+            }
+        }
     }
 }
 
@@ -110,7 +141,7 @@ int main(const int argc, char* argv[])
                           reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 6));
     glEnableVertexAttribArray(2);
 
-    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg") };
+    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg").flipVertically() };
     const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
 
     GLuint texture0{};
@@ -129,8 +160,8 @@ int main(const int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGB,
-                 textureImage0.width,
-                 textureImage0.height,
+                 static_cast<GLsizei>(textureImage0.width),
+                 static_cast<GLsizei>(textureImage0.height),
                  0,
                  GL_RGB,
                  GL_UNSIGNED_BYTE,
@@ -147,8 +178,8 @@ int main(const int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGBA,
-                 textureImage1.width,
-                 textureImage1.height,
+                 static_cast<GLsizei>(textureImage1.width),
+                 static_cast<GLsizei>(textureImage1.height),
                  0,
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
@@ -180,6 +211,7 @@ int main(const int argc, char* argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader.use();
+        shader.setUniform("interpolation", interpolation);
         glBindVertexArray(vertexArrayObject);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
