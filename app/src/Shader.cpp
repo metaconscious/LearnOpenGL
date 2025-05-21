@@ -160,6 +160,12 @@ namespace lgl
         setUniform(location, glm::ivec1{ value });
     }
 
+    void Shader::setUniform(const GLint location, const glm::dvec1& value)
+    {
+        std::println(stderr, "Conversion from double to float may result in loss of precision");
+        setUniform(location, glm::fvec1{ value });
+    }
+
     void Shader::setUniform(const GLint location, const GLint x, const GLint y)
     {
         glUniform2i(location, x, y);
@@ -198,6 +204,17 @@ namespace lgl
     void Shader::setUniform(const GLint location, const glm::bvec2& value)
     {
         setUniform(location, glm::ivec2{ value });
+    }
+
+    void Shader::setUniform(const GLint location, const glm::dvec2& value)
+    {
+        std::println(stderr, "Conversion from double to float may result in loss of precision");
+        setUniform(location, glm::fvec2{ value });
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat2x2& value)
+    {
+        glUniformMatrix2fv(location, 1, GL_FALSE, glm::value_ptr(value));
     }
 
     void Shader::setUniform(const GLint location, const GLint x, const GLint y, const GLint z)
@@ -240,6 +257,22 @@ namespace lgl
         setUniform(location, glm::ivec3{ value });
     }
 
+    void Shader::setUniform(const GLint location, const glm::dvec3& value)
+    {
+        std::println(stderr, "Conversion from double to float may result in loss of precision");
+        setUniform(location, glm::fvec3{ value });
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat3x2& value)
+    {
+        glUniformMatrix2x3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat3x3& value)
+    {
+        glUniformMatrix3fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
     void Shader::setUniform(const GLint location, const GLint x, const GLint y, const GLint z, const GLint w)
     {
         glUniform4i(location, x, y, z, w);
@@ -279,5 +312,26 @@ namespace lgl
     void Shader::setUniform(const GLint location, const glm::bvec4& value)
     {
         setUniform(location, glm::ivec4{ value });
+    }
+
+    void Shader::setUniform(const GLint location, const glm::dvec4& value)
+    {
+        std::println(stderr, "Conversion from double to float may result in loss of precision");
+        setUniform(location, glm::fvec4{ value });
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat2x4& value)
+    {
+        glUniformMatrix2x4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat3x4& value)
+    {
+        glUniformMatrix3x4fv(location, 1, GL_FALSE, glm::value_ptr(value));
+    }
+
+    void Shader::setUniform(const GLint location, const glm::fmat4x4& value)
+    {
+        glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(value));
     }
 } // lgl

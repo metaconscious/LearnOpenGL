@@ -46,6 +46,7 @@ namespace lgl
         static void setUniform(GLint location, const glm::fvec1& value);
         static void setUniform(GLint location, const glm::uvec1& value);
         static void setUniform(GLint location, const glm::bvec1& value);
+        static void setUniform(GLint location, const glm::dvec1& value);
 
         static void setUniform(GLint location, GLint x, GLint y);
         static void setUniform(GLint location, GLfloat x, GLfloat y);
@@ -55,6 +56,8 @@ namespace lgl
         static void setUniform(GLint location, const glm::fvec2& value);
         static void setUniform(GLint location, const glm::uvec2& value);
         static void setUniform(GLint location, const glm::bvec2& value);
+        static void setUniform(GLint location, const glm::dvec2& value);
+        static void setUniform(GLint location, const glm::fmat2x2& value);
 
         static void setUniform(GLint location, GLint x, GLint y, GLint z);
         static void setUniform(GLint location, GLfloat x, GLfloat y, GLfloat z);
@@ -64,6 +67,9 @@ namespace lgl
         static void setUniform(GLint location, const glm::fvec3& value);
         static void setUniform(GLint location, const glm::uvec3& value);
         static void setUniform(GLint location, const glm::bvec3& value);
+        static void setUniform(GLint location, const glm::dvec3& value);
+        static void setUniform(GLint location, const glm::fmat3x2& value);
+        static void setUniform(GLint location, const glm::fmat3x3& value);
 
         static void setUniform(GLint location, GLint x, GLint y, GLint z, GLint w);
         static void setUniform(GLint location, GLfloat x, GLfloat y, GLfloat z, GLfloat w);
@@ -73,6 +79,10 @@ namespace lgl
         static void setUniform(GLint location, const glm::fvec4& value);
         static void setUniform(GLint location, const glm::uvec4& value);
         static void setUniform(GLint location, const glm::bvec4& value);
+        static void setUniform(GLint location, const glm::dvec4& value);
+        static void setUniform(GLint location, const glm::fmat2x4& value);
+        static void setUniform(GLint location, const glm::fmat3x4& value);
+        static void setUniform(GLint location, const glm::fmat4x4& value);
     };
 
     template<typename... Args>
