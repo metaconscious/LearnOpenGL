@@ -168,16 +168,6 @@ int main(const int argc, char* argv[])
     shader.setUniform("texture0", 0);
     shader.setUniform("texture1", 1);
 
-    const auto transformation{
-        glm::scale(
-            glm::rotate(
-                glm::mat4(1.0f),
-                glm::radians(90.0f),
-                glm::vec3(0.0f, 0.0f, 1.0f)
-            ),
-            glm::vec3(0.5f))
-    };
-
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -191,7 +181,16 @@ int main(const int argc, char* argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader.use();
-        shader.setUniform("transformation", transformation);
+        shader.setUniform(
+            "transformation",
+            glm::rotate(
+                glm::translate(
+                    glm::mat4(1.0f),
+                    glm::vec3(0.5f, -0.5f, 0.0f)),
+                static_cast<float>(glfwGetTime()),
+                glm::vec3(0.0f, 0.0f, 1.0f)
+            )
+        );
         glBindVertexArray(vertexArrayObject);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
