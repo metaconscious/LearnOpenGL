@@ -110,7 +110,7 @@ int main(const int argc, char* argv[])
                           reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 6));
     glEnableVertexAttribArray(2);
 
-    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg") };
+    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg").flipVertically() };
     const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
 
     GLuint texture0{};
@@ -129,8 +129,8 @@ int main(const int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGB,
-                 textureImage0.width,
-                 textureImage0.height,
+                 static_cast<GLsizei>(textureImage0.width),
+                 static_cast<GLsizei>(textureImage0.height),
                  0,
                  GL_RGB,
                  GL_UNSIGNED_BYTE,
@@ -147,8 +147,8 @@ int main(const int argc, char* argv[])
     glTexImage2D(GL_TEXTURE_2D,
                  0,
                  GL_RGBA,
-                 textureImage1.width,
-                 textureImage1.height,
+                 static_cast<GLsizei>(textureImage1.width),
+                 static_cast<GLsizei>(textureImage1.height),
                  0,
                  GL_RGBA,
                  GL_UNSIGNED_BYTE,
