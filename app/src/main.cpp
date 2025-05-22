@@ -68,23 +68,23 @@ int main(const int argc, char* argv[])
 
     glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
 
-    const auto shader0{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment0.glsl") };
+    const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
-    GLuint vertexArrayObjects[2]{};
-    glGenVertexArrays(2, vertexArrayObjects);
+    GLuint vertexArrayObject{};
+    glGenVertexArrays(1, &vertexArrayObject);
 
-    GLuint vertexBufferObjects[2]{};
-    glGenBuffers(2, vertexBufferObjects);
+    GLuint vertexBufferObject{};
+    glGenBuffers(1, &vertexBufferObject);
 
-    GLuint elementBufferObject[2]{};
-    glGenBuffers(2, elementBufferObject);
+    GLuint elementBufferObject{};
+    glGenBuffers(1, &elementBufferObject);
 
-    glBindVertexArray(vertexArrayObjects[0]);
+    glBindVertexArray(vertexArrayObject);
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects[0]);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject[0]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0,
@@ -112,9 +112,13 @@ int main(const int argc, char* argv[])
     glEnableVertexAttribArray(2);
 
     const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg").flipVertically() };
+    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
 
     GLuint texture0{};
     glGenTextures(1, &texture0);
+
+    GLuint texture1{};
+    glGenTextures(1, &texture1);
 
     glBindTexture(GL_TEXTURE_2D, texture0);
 
@@ -134,11 +138,6 @@ int main(const int argc, char* argv[])
                  textureImage0.span().data());
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
-
-    GLuint texture1{};
-    glGenTextures(1, &texture1);
-
     glBindTexture(GL_TEXTURE_2D, texture1);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -157,47 +156,6 @@ int main(const int argc, char* argv[])
                  textureImage1.span().data());
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    shader0.use();
-    shader0.setUniform("texture0", 0);
-    shader0.setUniform("texture1", 1);
-
-    const auto shader1{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment1.glsl") };
-
-    glBindVertexArray(vertexArrayObjects[1]);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObjects[1]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          nullptr);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 3));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2,
-                          2,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 6));
-    glEnableVertexAttribArray(2);
-
-    shader1.use();
-    shader1.setUniform("ourTexture", 0);
-
     glBindTexture(GL_TEXTURE_2D, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Optional
@@ -206,6 +164,10 @@ int main(const int argc, char* argv[])
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Since VAO is already unbounded, it's safe to unbind EBO now.
 
+    shader.use();
+    shader.setUniform("texture0", 0);
+    shader.setUniform("texture1", 1);
+
     while (!glfwWindowShouldClose(window))
     {
         processInput(window);
@@ -213,8 +175,13 @@ int main(const int argc, char* argv[])
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        shader0.use();
-        shader0.setUniform(
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, texture0);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, texture1);
+
+        shader.use();
+        shader.setUniform(
             "transformation",
             glm::rotate(
                 glm::translate(
@@ -224,32 +191,19 @@ int main(const int argc, char* argv[])
                 glm::vec3(0.0f, 0.0f, 1.0f)
             )
         );
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture1);
-
-        glBindVertexArray(vertexArrayObjects[0]);
+        glBindVertexArray(vertexArrayObject);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
-        const auto ratio{ std::sin(static_cast<float>(glfwGetTime())) / 2.0f + 0.5f };
-        shader1.use();
-        shader1.setUniform(
-            "transformation",
-            glm::scale(
-                glm::translate(
-                    glm::mat4(1.0f),
-                    glm::vec3(-0.5f, 0.5f, 0.0f)
-                ),
-                glm::vec3(ratio, ratio, 0.0f)
-            )
+        const auto scalar{ std::sin(static_cast<float>(glfwGetTime())) / 2.0f + 0.5f };
+        shader.setUniform("transformation",
+                          glm::scale(
+                              glm::translate(
+                                  glm::mat4(1.0f),
+                                  glm::vec3(-0.5f, 0.5f, 0.0f)
+                              ),
+                              glm::vec3(scalar, scalar, scalar)
+                          )
         );
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture0);
-
-        glBindVertexArray(vertexArrayObjects[1]);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 
         // Note: double buffer is used by default for modern OpenGL
@@ -257,9 +211,9 @@ int main(const int argc, char* argv[])
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
     }
 
-    glDeleteVertexArrays(2, vertexArrayObjects);
-    glDeleteBuffers(2, vertexBufferObjects);
-    glDeleteBuffers(2, elementBufferObject);
+    glDeleteVertexArrays(1, &vertexArrayObject);
+    glDeleteBuffers(1, &vertexBufferObject);
+    glDeleteBuffers(1, &elementBufferObject);
 
     glfwTerminate();
 
