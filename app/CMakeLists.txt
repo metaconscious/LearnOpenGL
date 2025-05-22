@@ -1,4 +1,4 @@
-file(GLOB SHADERS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*")
+file(GLOB SHADERS CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/shaders/*")
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/shaders.timestamp
         COMMAND ${CMAKE_COMMAND} -E copy_directory
@@ -10,7 +10,7 @@ add_custom_command(
 )
 add_custom_target(copy_shaders ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/shaders.timestamp)
 
-file(GLOB_RECURSE RESOURCES "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
+file(GLOB_RECURSE RESOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/resources/*")
 add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/resources.timestamp
         COMMAND ${CMAKE_COMMAND} -E copy_directory
