@@ -183,12 +183,13 @@ int main(const int argc, char* argv[])
         shader.use();
         shader.setUniform(
             "transformation",
-            glm::rotate(
-                glm::translate(
+            glm::translate(
+                glm::rotate(
                     glm::mat4(1.0f),
-                    glm::vec3(0.5f, -0.5f, 0.0f)),
-                static_cast<float>(glfwGetTime()),
-                glm::vec3(0.0f, 0.0f, 1.0f)
+                    static_cast<float>(glfwGetTime()),
+                    glm::vec3(0.0f, 0.0f, 1.0f)
+                ),
+                glm::vec3(0.5f, -0.5f, 0.0f)
             )
         );
         glBindVertexArray(vertexArrayObject);
