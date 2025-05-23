@@ -3,13 +3,14 @@
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
 
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <print>
 #include <ranges>
-#include <glm/ext/matrix_transform.hpp>
 
 
 float vertices[] = {
@@ -182,13 +183,27 @@ int main(const int argc, char* argv[])
 
         shader.use();
         shader.setUniform(
-            "transformation",
+            "model",
             glm::rotate(
-                glm::translate(
-                    glm::mat4(1.0f),
-                    glm::vec3(0.5f, -0.5f, 0.0f)),
-                static_cast<float>(glfwGetTime()),
-                glm::vec3(0.0f, 0.0f, 1.0f)
+                glm::mat4(1.0f),
+                glm::radians(-55.0f),
+                glm::vec3(1.0f, 0.0f, 0.0f)
+            )
+        );
+        shader.setUniform(
+            "view",
+            glm::translate(
+                glm::mat4(1.0f),
+                glm::vec3(0.0f, 0.0f, -3.0f)
+            )
+        );
+        shader.setUniform(
+            "projection",
+            glm::perspective(
+                glm::radians(45.0f),
+                800.0f / 600.0f,
+                0.1f,
+                100.0f
             )
         );
         glBindVertexArray(vertexArrayObject);
