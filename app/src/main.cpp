@@ -96,7 +96,10 @@ void processInput(GLFWwindow* window)
     }
     if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
     {
-        equalPressing = true;
+        if (!equalPressing) [[unlikely]]
+        {
+            equalPressing = true;
+        }
         fieldOfView += 0.1f;
     }
     else if (equalPressing && glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_RELEASE)
@@ -106,7 +109,10 @@ void processInput(GLFWwindow* window)
     }
     if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
     {
-        minusPressing = true;
+        if (!minusPressing) [[unlikely]]
+        {
+            minusPressing = true;
+        }
         fieldOfView -= 0.1f;
     }
     else if (minusPressing && glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_RELEASE)
