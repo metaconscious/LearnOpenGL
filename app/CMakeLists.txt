@@ -22,7 +22,7 @@ add_custom_command(
 )
 add_custom_target(copy_resources ALL DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/resources.timestamp)
 
-file(GLOB APP_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
+file(GLOB APP_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")
 add_library(LearnOpenGLLibrary ${APP_SOURCES})
 target_include_directories(LearnOpenGLLibrary PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
