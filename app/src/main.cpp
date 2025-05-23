@@ -270,7 +270,7 @@ int main(const int argc, char* argv[])
                         glm::mat4(1.0f),
                         vec
                     ),
-                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * index),
+                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * static_cast<float>(index)),
                     glm::vec3(1.0f, 0.3f, 0.5f)
                 )
             );
