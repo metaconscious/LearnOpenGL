@@ -70,6 +70,10 @@ glm::vec3 cubePositions[]{
     { -1.3f, 1.0f, -1.5f }
 };
 
+bool equalPressing{ false };
+bool minusPressing{ false };
+float fieldOfView{ 45.0f };
+
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
                                     const int height)
@@ -82,6 +86,26 @@ void processInput(GLFWwindow* window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, GLFW_TRUE);
+    }
+    if (glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_PRESS)
+    {
+        equalPressing = true;
+        fieldOfView += 0.1f;
+    }
+    else if (equalPressing && glfwGetKey(window, GLFW_KEY_EQUAL) == GLFW_RELEASE)
+    {
+        equalPressing = false;
+        std::println("Current FOV is {}", fieldOfView);
+    }
+    if (glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_PRESS)
+    {
+        minusPressing = true;
+        fieldOfView -= 0.1f;
+    }
+    else if (minusPressing && glfwGetKey(window, GLFW_KEY_MINUS) == GLFW_RELEASE)
+    {
+        minusPressing = false;
+        std::println("Current FOV is {}", fieldOfView);
     }
 }
 
@@ -224,7 +248,7 @@ int main(const int argc, char* argv[])
         shader.setUniform(
             "projection",
             glm::perspective(
-                glm::radians(45.0f),
+                glm::radians(fieldOfView),
                 800.0f / 600.0f,
                 0.1f,
                 100.0f
