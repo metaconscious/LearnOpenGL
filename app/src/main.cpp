@@ -77,8 +77,11 @@ glm::vec3 cubePositions[]{
 
 bool equalPressing{ false };
 bool minusPressing{ false };
+bool leftAltPressing{ false };
 float fieldOfView{ 45.0f };
 glm::vec3 cameraPosition{ 0.0f, 0.0f, 0.0f };
+float yaw{ 0.0f };
+float pitch{ 0.0f };
 
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
@@ -87,6 +90,45 @@ void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
     windowWidth = width;
     windowHeight = height;
     glViewport(0, 0, width, height);
+}
+
+void onCursorPositionChanged([[maybe_unused]] GLFWwindow* window,
+                             const double xPos,
+                             const double yPos)
+{
+    constexpr static auto sensitivity{ 0.1f };
+
+    static auto firstTime{ true };
+
+    static auto s_lastX{ 0.0 };
+    static auto s_lastY{ 0.0 };
+
+    if (firstTime)
+    {
+        s_lastX = xPos;
+        s_lastY = yPos;
+        firstTime = false;
+    }
+
+    auto xOffset = xPos - s_lastX;
+    auto yOffset = yPos - s_lastY;
+    s_lastX = xPos;
+    s_lastY = yPos;
+
+    xOffset *= sensitivity;
+    yOffset *= sensitivity;
+
+    yaw += static_cast<float>(xOffset);
+    pitch += static_cast<float>(yOffset);
+
+    if (pitch > 89.0f)
+    {
+        pitch = 89.0f;
+    }
+    if (pitch < -89.0f)
+    {
+        pitch = -89.0f;
+    }
 }
 
 void processInput(GLFWwindow* window)
@@ -145,6 +187,16 @@ void processInput(GLFWwindow* window)
     {
         cameraPosition.y += 0.1f;
     }
+    if (!leftAltPressing && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS)
+    {
+        leftAltPressing = true;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+    if (leftAltPressing && glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
+    {
+        leftAltPressing = false;
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    }
 }
 
 int main(const int argc, char* argv[])
@@ -181,6 +233,15 @@ int main(const int argc, char* argv[])
     }
 
     glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
+
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+    if (glfwRawMouseMotionSupported())
+    {
+        glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+    }
+
+    glfwSetCursorPosCallback(window, &onCursorPositionChanged);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -300,9 +361,17 @@ int main(const int argc, char* argv[])
             );
             shader.setUniform(
                 "view",
-                glm::translate(
-                    glm::mat4(1.0f),
-                    cameraPosition
+                glm::rotate(
+                    glm::rotate(
+                        glm::translate(
+                            glm::mat4(1.0f),
+                            cameraPosition
+                        ),
+                        glm::radians(yaw),
+                        glm::vec3(0.0f, 1.0f, 0.0f)
+                    ),
+                    glm::radians(pitch),
+                    glm::vec3(1.0f, 0.0f, 0.0f)
                 )
             );
             shader.setUniform(
