@@ -80,7 +80,7 @@ bool minusPressing{ false };
 bool leftAltPressing{ false };
 float fieldOfView{ 45.0f };
 glm::vec3 cameraPosition{ 0.0f, 0.0f, 0.0f };
-float yaw{ 0.0f };
+float yaw{ -90.0f };
 float pitch{ 0.0f };
 
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
