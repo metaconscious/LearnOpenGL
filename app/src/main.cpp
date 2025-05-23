@@ -12,6 +12,11 @@
 #include <print>
 #include <ranges>
 
+constexpr auto INITIAL_WINDOW_WIDTH{ 800 };
+constexpr auto INITIAL_WINDOW_HEIGHT{ 600 };
+
+int windowWidth{ INITIAL_WINDOW_WIDTH };
+int windowHeight{ INITIAL_WINDOW_HEIGHT };
 
 float vertices[] = {
     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
@@ -78,6 +83,8 @@ void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
                                     const int height)
 {
+    windowWidth = width;
+    windowHeight = height;
     glViewport(0, 0, width, height);
 }
 
@@ -119,7 +126,15 @@ int main(const int argc, char* argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    auto* window{ glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr) };
+    auto* window{
+        glfwCreateWindow(
+            INITIAL_WINDOW_WIDTH,
+            INITIAL_WINDOW_HEIGHT,
+            "LearnOpenGL",
+            nullptr,
+            nullptr
+        )
+    };
     if (window == nullptr)
     {
         std::println(stderr, "Failed to create GLFW window");
@@ -245,15 +260,6 @@ int main(const int argc, char* argv[])
                 glm::vec3(0.0f, 0.0f, -3.0f)
             )
         );
-        shader.setUniform(
-            "projection",
-            glm::perspective(
-                glm::radians(fieldOfView),
-                800.0f / 600.0f,
-                0.1f,
-                100.0f
-            )
-        );
         glBindVertexArray(vertexArrayObject);
         for (auto&& [index, vec] : std::views::enumerate(cubePositions))
         {
@@ -266,6 +272,15 @@ int main(const int argc, char* argv[])
                     ),
                     static_cast<float>(glfwGetTime()) * glm::radians(20.0f * index),
                     glm::vec3(1.0f, 0.3f, 0.5f)
+                )
+            );
+            shader.setUniform(
+                "projection",
+                glm::perspective(
+                    glm::radians(fieldOfView),
+                    static_cast<float>(windowWidth) / static_cast<float>(windowHeight),
+                    0.1f,
+                    100.0f
                 )
             );
             glDrawArrays(GL_TRIANGLES, 0, 36);
