@@ -57,6 +57,19 @@ float vertices[] = {
     -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
 };
 
+glm::vec3 cubePositions[]{
+    { 0.0f, 0.0f, 0.0f },
+    { 2.0f, 5.0f, -15.0f },
+    { -1.5f, -2.2f, -2.5f },
+    { -3.8f, -2.0f, -12.3f },
+    { 2.4f, -0.4f, -3.5f },
+    { -1.7f, 3.0f, -7.5f },
+    { 1.3f, -2.0f, -2.5f },
+    { 1.5f, 2.0f, -2.5f },
+    { 1.5f, 0.2f, -1.5f },
+    { -1.3f, 1.0f, -1.5f }
+};
+
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
                                     const int height)
@@ -202,14 +215,6 @@ int main(const int argc, char* argv[])
 
         shader.use();
         shader.setUniform(
-            "model",
-            glm::rotate(
-                glm::mat4(1.0f),
-                static_cast<float>(glfwGetTime()) * glm::radians(50.0f),
-                glm::vec3(0.5f, 1.0f, 1.0f)
-            )
-        );
-        shader.setUniform(
             "view",
             glm::translate(
                 glm::mat4(1.0f),
@@ -226,7 +231,21 @@ int main(const int argc, char* argv[])
             )
         );
         glBindVertexArray(vertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (auto&& [index, vec] : std::views::enumerate(cubePositions))
+        {
+            shader.setUniform(
+                "model",
+                glm::rotate(
+                    glm::translate(
+                        glm::mat4(1.0f),
+                        vec
+                    ),
+                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * index),
+                    glm::vec3(1.0f, 0.3f, 0.5f)
+                )
+            );
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
