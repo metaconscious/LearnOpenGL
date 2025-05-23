@@ -99,6 +99,8 @@ int main(const int argc, char* argv[])
 
     glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
 
+    glEnable(GL_DEPTH_TEST);
+
     const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
     GLuint vertexArrayObject{};
@@ -185,8 +187,6 @@ int main(const int argc, char* argv[])
     shader.use();
     shader.setUniform("texture0", 0);
     shader.setUniform("texture1", 1);
-
-    glEnable(GL_DEPTH_TEST);
 
     while (!glfwWindowShouldClose(window))
     {
