@@ -78,6 +78,7 @@ glm::vec3 cubePositions[]{
 bool equalPressing{ false };
 bool minusPressing{ false };
 float fieldOfView{ 45.0f };
+glm::vec3 cameraPosition{ 0.0f, 0.0f, 0.0f };
 
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
@@ -119,6 +120,30 @@ void processInput(GLFWwindow* window)
     {
         minusPressing = false;
         std::println("Current FOV is {}", fieldOfView);
+    }
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    {
+        cameraPosition.z += 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    {
+        cameraPosition.x += 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    {
+        cameraPosition.z -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    {
+        cameraPosition.x -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+    {
+        cameraPosition.y -= 0.1f;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+    {
+        cameraPosition.y += 0.1f;
     }
 }
 
@@ -259,13 +284,6 @@ int main(const int argc, char* argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader.use();
-        shader.setUniform(
-            "view",
-            glm::translate(
-                glm::mat4(1.0f),
-                glm::vec3(0.0f, 0.0f, -3.0f)
-            )
-        );
         glBindVertexArray(vertexArrayObject);
         for (auto&& [index, vec] : std::views::enumerate(cubePositions))
         {
@@ -278,6 +296,13 @@ int main(const int argc, char* argv[])
                     ),
                     static_cast<float>(glfwGetTime()) * glm::radians(20.0f * static_cast<float>(index)),
                     glm::vec3(1.0f, 0.3f, 0.5f)
+                )
+            );
+            shader.setUniform(
+                "view",
+                glm::translate(
+                    glm::mat4(1.0f),
+                    cameraPosition
                 )
             );
             shader.setUniform(
