@@ -14,17 +14,47 @@
 
 
 float vertices[] = {
-    // positions          // colors           // texture coords
-    0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // top right
-    0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // bottom right
-    -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // bottom left
-    -0.5f, 0.5f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f // top left
-};
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
 
-unsigned int indices[]{
-    // note that we start from 0!
-    0, 1, 3, // first Triangle
-    1, 2, 3 // second Triangle
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+
+    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
 };
 
 void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
@@ -85,32 +115,21 @@ int main(const int argc, char* argv[])
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementBufferObject);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
     glVertexAttribPointer(0,
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          5 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
 
     glVertexAttribPointer(1,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 3));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2,
                           2,
                           GL_FLOAT,
                           GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 6));
-    glEnableVertexAttribArray(2);
+                          5 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 3));
+    glEnableVertexAttribArray(1);
 
     const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg").flipVertically() };
     const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
@@ -163,8 +182,6 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0); // Since VAO is already unbounded, it's safe to unbind EBO now.
-
     shader.use();
     shader.setUniform("texture0", 0);
     shader.setUniform("texture1", 1);
@@ -186,8 +203,8 @@ int main(const int argc, char* argv[])
             "model",
             glm::rotate(
                 glm::mat4(1.0f),
-                glm::radians(-55.0f),
-                glm::vec3(1.0f, 0.0f, 0.0f)
+                static_cast<float>(glfwGetTime()) * glm::radians(50.0f),
+                glm::vec3(0.5f, 1.0f, 1.0f)
             )
         );
         shader.setUniform(
@@ -207,7 +224,7 @@ int main(const int argc, char* argv[])
             )
         );
         glBindVertexArray(vertexArrayObject);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
