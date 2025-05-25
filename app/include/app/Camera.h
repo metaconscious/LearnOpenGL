@@ -416,7 +416,7 @@ namespace lgl
         bool m_rotating{ false };
         float m_lastX{ 0.0f };
         float m_lastY{ 0.0f };
-        bool m_actionStates[static_cast<size_t>(CameraAction::ZoomOut) + 1] = { false };
+        std::array<bool, static_cast<size_t>(CameraAction::ZoomOut) + 1> m_actionStates{};
     };
 
     // Example usage with GLFW window

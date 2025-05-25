@@ -1106,7 +1106,11 @@ namespace lgl
     }
 
     // CameraSystem implementation
-    void CameraSystem::keyCallback(GLFWwindow* window, const int key, int scancode, const int action, int mods)
+    void CameraSystem::keyCallback(GLFWwindow* window,
+                                   const int key,
+                                   [[maybe_unused]] int scancode,
+                                   const int action,
+                                   [[maybe_unused]] int mods)
     {
         const auto system{ static_cast<CameraSystem*>(glfwGetWindowUserPointer(window)) };
         system->m_controller->processKeyInput(system->m_camera, key, action);
@@ -1133,7 +1137,8 @@ namespace lgl
     }
 
     CameraSystem::CameraSystem(GLFWwindow* window, const Camera::CameraSettings& settings)
-        : m_camera{ settings }, m_window{ window }
+        : m_camera{ settings },
+          m_window{ window }
     {
         // Set up controller based on camera mode
         switch (settings.mode)
