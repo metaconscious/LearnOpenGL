@@ -14,6 +14,79 @@
 
 namespace lgl
 {
+    // Base class for objects with position and orientation in 3D space
+    class Spatial
+    {
+    public:
+        // Constructor with default position and orientation
+        explicit Spatial(const glm::vec3& position = { 0.0f, 0.0f, 0.0f },
+                         float yaw = -90.0f,
+                         float pitch = 0.0f,
+                         float roll = 0.0f,
+                         const glm::vec3& worldUp = { 0.0f, 1.0f, 0.0f });
+
+        // Copy/move constructors and assignment operators
+        Spatial(const Spatial&) = default;
+        Spatial(Spatial&&) noexcept = default;
+        Spatial& operator=(const Spatial&) = default;
+        Spatial& operator=(Spatial&&) noexcept = default;
+
+        virtual ~Spatial() = default;
+        // Position methods
+        void setPosition(const glm::vec3& position);
+        [[nodiscard]] const glm::vec3& getPosition() const;
+
+        // Orientation methods
+        void setOrientation(float yaw, float pitch, float roll = 0.0f);
+        [[nodiscard]] float getYaw() const;
+        [[nodiscard]] float getPitch() const;
+        [[nodiscard]] float getRoll() const;
+
+        // Direction vectors
+        [[nodiscard]] const glm::vec3& getForward() const;
+        [[nodiscard]] const glm::vec3& getUp() const;
+        [[nodiscard]] const glm::vec3& getRight() const;
+        void setWorldUp(const glm::vec3& up);
+
+        // Movement methods
+        void moveForward(float distance);
+        void moveRight(float distance);
+        void moveUp(float distance);
+        void moveInDirection(const glm::vec3& direction, float distance);
+
+        [[nodiscard]] float movementSpeed() const;
+        void setMovementSpeed(float movementSpeed);
+
+        // Rotation methods
+        void rotate(float yawOffset, float pitchOffset);
+
+        // Matrix transformation
+        [[nodiscard]] glm::mat4 getModelMatrix() const;
+
+    protected:
+        // Core spatial properties
+        struct State
+        {
+            glm::vec3 position{ 0.0f, 0.0f, 0.0f };
+            glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
+            glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+            glm::vec3 right{ 1.0f, 0.0f, 0.0f };
+            glm::vec3 worldUp{ 0.0f, 1.0f, 0.0f };
+            float yaw{ -90.0f };
+            float pitch{ 0.0f };
+            float roll{ 0.0f };
+            float movementSpeed{ 5.0f };
+        };
+
+        State m_state;
+
+        // Update direction vectors based on Euler angles
+        void updateVectors();
+
+        // Notify derived classes that spatial state has changed
+        virtual void onSpatialChanged();
+    };
+
     enum class CameraType
     {
         Perspective,
@@ -30,7 +103,7 @@ namespace lgl
     // Forward declaration
     class CameraController;
 
-    class Camera
+    class Camera final : public Spatial
     {
     public:
         struct CameraSettings
@@ -39,7 +112,6 @@ namespace lgl
             float aspectRatio{ 16.0f / 9.0f };
             float nearPlane{ 0.1f };
             float farPlane{ 1000.0f };
-            float movementSpeed{ 5.0f };
             float mouseSensitivity{ 0.1f };
             CameraType type{ CameraType::Perspective };
             CameraMode mode{ CameraMode::Free };
@@ -48,26 +120,8 @@ namespace lgl
         static const CameraSettings DEFAULT_CAMERA_SETTINGS;
 
     private:
-        // Core camera properties
-        glm::vec3 m_position{ 0.0f, 0.0f, 3.0f };
-        glm::vec3 m_forward{ 0.0f, 0.0f, -1.0f };
-        glm::vec3 m_up{ 0.0f, 1.0f, 0.0f };
-        glm::vec3 m_right{ 1.0f, 0.0f, 0.0f };
-        glm::vec3 m_worldUp{ 0.0f, 1.0f, 0.0f };
-
-        // Euler angles
-        float m_yaw{ -90.0f }; // Yaw is initialized to -90 to point toward negative Z
-        float m_pitch{ 0.0f };
-        float m_roll{ 0.0f };
-
-        // Camera parameters
+        // Camera-specific parameters
         CameraSettings m_settings;
-
-        // Matrices
-        mutable bool m_viewDirty{ true };
-        mutable bool m_projectionDirty{ true };
-        mutable glm::mat4 m_viewMatrix{ 1.0f };
-        mutable glm::mat4 m_projectionMatrix{ 1.0f };
 
         // Target (for orbital camera)
         std::optional<glm::vec3> m_target;
@@ -76,11 +130,30 @@ namespace lgl
         // Controller
         std::unique_ptr<CameraController> m_controller;
 
-        // Update camera vectors based on Euler angles
-        void updateCameraVectors();
+        // Cache for matrices
+        struct Cache
+        {
+            bool viewDirty{ true };
+            bool projectionDirty{ true };
+            glm::mat4 viewMatrix{ 1.0f };
+            glm::mat4 projectionMatrix{ 1.0f };
+        };
+
+        std::unique_ptr<Cache> m_cache;
+
+        // Override from Spatial
+        void onSpatialChanged() override;
 
     public:
         explicit Camera(const CameraSettings& settings = DEFAULT_CAMERA_SETTINGS);
+
+        // Copy/move constructors and assignment operators
+        Camera(const Camera& other);
+        Camera(Camera&& other) noexcept;
+        Camera& operator=(const Camera& other);
+        Camera& operator=(Camera&& other) noexcept;
+
+        ~Camera() override = default;
 
         // Create camera with position and target
         static Camera createLookAt(const glm::vec3& position,
@@ -93,63 +166,21 @@ namespace lgl
         // Get projection matrix
         [[nodiscard]] const glm::mat4& getProjectionMatrix() const;
 
-        // Movement methods
-        void moveForward(float distance);
-
-        void moveRight(float distance);
-
-        void moveUp(float distance);
-
-        // Rotation methods
-        void rotate(float yawOffset, float pitchOffset);
-
-        void setRoll(float roll);
-
         // Set target for orbital camera
         void setTarget(const glm::vec3& target);
-
         void clearTarget();
-
         void setOrbitDistance(float distance);
 
         // Configuration methods
         void setFieldOfView(float fov);
-
         void setAspectRatio(float aspectRatio);
-
         void setNearPlane(float nearPlane);
-
         void setFarPlane(float farPlane);
-
         void setCameraType(CameraType type);
-
         void setCameraMode(CameraMode mode);
-
-        // Getters
-        [[nodiscard]] const glm::vec3& getPosition() const;
-
-        [[nodiscard]] const glm::vec3& getForward() const;
-
-        [[nodiscard]] const glm::vec3& getUp() const;
-
-        [[nodiscard]] const glm::vec3& getRight() const;
-
-        [[nodiscard]] float getYaw() const;
-
-        [[nodiscard]] float getPitch() const;
-
-        [[nodiscard]] float getRoll() const;
-
-        // Setters with vector
-        void setPosition(const glm::vec3& position);
-
-        void setOrientation(float yaw, float pitch);
-
-        void setWorldUp(const glm::vec3& up);
 
         // Other getters
         [[nodiscard]] const CameraSettings& settings() const;
-
         [[nodiscard]] std::optional<glm::vec3> optionalTarget() const;
 
         // Frustum extraction for culling
@@ -160,17 +191,11 @@ namespace lgl
             std::array<glm::vec4, 6> planes;
         };
 
-        Frustum extractFrustum() const;
-
-        // Check if a point is visible
+        [[nodiscard]] Frustum extractFrustum() const;
+        // Culling methods
         static bool isPointVisible(const glm::vec3& point, const Frustum& frustum);
-
-        // Check if a sphere is visible
         static bool isSphereVisible(const glm::vec3& center, float radius, const Frustum& frustum);
-
-        // Check if an axis-aligned bounding box is visible
         static bool isAABBVisible(const glm::vec3& min, const glm::vec3& max, const Frustum& frustum);
-
         // Utility methods
         [[nodiscard]] glm::vec3 screenToWorld(const glm::vec2& screenPos, const glm::vec2& screenSize) const;
 
@@ -182,10 +207,8 @@ namespace lgl
         };
 
         [[nodiscard]] Ray createRayFromScreen(const glm::vec2& screenPos, const glm::vec2& screenSize) const;
-
         // Serialization support
         [[nodiscard]] std::string serialize() const;
-
         // Animation support
         void interpolateTo(const Camera& target, float t);
     };

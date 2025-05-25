@@ -14,72 +14,261 @@
 
 namespace lgl
 {
-    const Camera::CameraSettings Camera::DEFAULT_CAMERA_SETTINGS{};
+    Spatial::Spatial(const glm::vec3& position, float yaw, float pitch, float roll, const glm::vec3& worldUp)
+        : m_state{
+            .position = position,
+            .worldUp = glm::normalize(worldUp),
+            .yaw = yaw,
+            .pitch = pitch,
+            .roll = roll
+        }
+    {
+        updateVectors();
+    }
 
-    void Camera::updateCameraVectors()
+    void Spatial::updateVectors()
     {
         // Calculate the new forward vector
-        m_forward.x = std::cos(glm::radians(m_yaw)) * std::cos(glm::radians(m_pitch));
-        m_forward.y = std::sin(glm::radians(m_pitch));
-        m_forward.z = std::sin(glm::radians(m_yaw)) * std::cos(glm::radians(m_pitch));
-        m_forward = glm::normalize(m_forward);
-
+        m_state.forward.x = std::cos(glm::radians(m_state.yaw)) * std::cos(glm::radians(m_state.pitch));
+        m_state.forward.y = std::sin(glm::radians(m_state.pitch));
+        m_state.forward.z = std::sin(glm::radians(m_state.yaw)) * std::cos(glm::radians(m_state.pitch));
+        m_state.forward = glm::normalize(m_state.forward);
         // Recalculate the right and up vector
-        m_right = glm::normalize(glm::cross(m_forward, m_worldUp));
-        m_up = glm::normalize(glm::cross(m_right, m_forward));
+        m_state.right = glm::normalize(glm::cross(m_state.forward, m_state.worldUp));
+        m_state.up = glm::normalize(glm::cross(m_state.right, m_state.forward));
 
-        m_viewDirty = true;
+        // Notify derived classes
+        onSpatialChanged();
+    }
+
+    void Spatial::onSpatialChanged()
+    {
+        // Do nothing
+    }
+
+    void Spatial::setPosition(const glm::vec3& position)
+    {
+        m_state.position = position;
+        onSpatialChanged();
+    }
+
+    const glm::vec3& Spatial::getPosition() const
+    {
+        return m_state.position;
+    }
+
+    void Spatial::setOrientation(const float yaw, const float pitch, const float roll)
+    {
+        m_state.yaw = yaw;
+        m_state.pitch = std::clamp(pitch, -89.0f, 89.0f);
+        m_state.roll = roll;
+        updateVectors();
+    }
+
+    float Spatial::getYaw() const
+    {
+        return m_state.yaw;
+    }
+
+    float Spatial::getPitch() const
+    {
+        return m_state.pitch;
+    }
+
+    float Spatial::getRoll() const
+    {
+        return m_state.roll;
+    }
+
+    const glm::vec3& Spatial::getForward() const
+    {
+        return m_state.forward;
+    }
+
+    const glm::vec3& Spatial::getUp() const
+    {
+        return m_state.up;
+    }
+
+    const glm::vec3& Spatial::getRight() const
+    {
+        return m_state.right;
+    }
+
+    void Spatial::setWorldUp(const glm::vec3& up)
+    {
+        m_state.worldUp = glm::normalize(up);
+        updateVectors();
+    }
+
+    void Spatial::moveForward(const float distance)
+    {
+        m_state.position += m_state.forward * distance * m_state.movementSpeed;
+        onSpatialChanged();
+    }
+
+    void Spatial::moveRight(const float distance)
+    {
+        m_state.position += m_state.right * distance * m_state.movementSpeed;
+        onSpatialChanged();
+    }
+
+    void Spatial::moveUp(const float distance)
+    {
+        m_state.position += m_state.worldUp * distance * m_state.movementSpeed;
+        onSpatialChanged();
+    }
+
+    void Spatial::moveInDirection(const glm::vec3& direction, const float distance)
+    {
+        m_state.position += glm::normalize(direction) * distance * m_state.movementSpeed;
+        onSpatialChanged();
+    }
+
+    void Spatial::rotate(const float yawOffset, const float pitchOffset)
+    {
+        m_state.yaw += yawOffset;
+        m_state.pitch += pitchOffset;
+
+        // Constrain pitch to avoid gimbal lock
+        m_state.pitch = std::clamp(m_state.pitch, -89.0f, 89.0f);
+
+        updateVectors();
+    }
+
+    float Spatial::movementSpeed() const
+    {
+        return m_state.movementSpeed;
+    }
+
+    void Spatial::setMovementSpeed(const float movementSpeed)
+    {
+        m_state.movementSpeed = movementSpeed;
+    }
+
+    glm::mat4 Spatial::getModelMatrix() const
+    {
+        glm::mat4 model{ 1.0f };
+        model = glm::translate(model, m_state.position);
+
+        // Apply rotations based on Euler angles
+        // Note: This is a simplified version; a more robust implementation
+        // might use quaternions to avoid gimbal lock
+        model = glm::rotate(model, glm::radians(m_state.yaw), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(m_state.pitch), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(m_state.roll), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        return model;
+    }
+
+
+    const Camera::CameraSettings Camera::DEFAULT_CAMERA_SETTINGS{};
+
+    void Camera::onSpatialChanged()
+    {
+        m_cache->viewDirty = true;
     }
 
     Camera::Camera(const CameraSettings& settings)
-        : m_settings{ settings }
+        : Spatial{ { 0.0f, 0.0f, 3.0f }, -90.0f, 0.0f }, // Initialize base class
+          m_settings{ settings },
+          m_cache{ std::make_unique<Cache>() }
     {
-        updateCameraVectors();
+    }
+
+    Camera::Camera(const Camera& other)
+        : Spatial{ other },
+          m_settings{ other.m_settings },
+          m_target{ other.m_target },
+          m_orbitDistance{ other.m_orbitDistance },
+          m_cache(std::make_unique<Cache>(*other.m_cache))
+    {
+        // Controller is not copied
+    }
+
+    Camera::Camera(Camera&& other) noexcept
+        : Spatial(std::move(other)),
+          m_settings(other.m_settings),
+          m_target(other.m_target),
+          m_orbitDistance{ other.m_orbitDistance },
+          m_controller(std::move(other.m_controller)),
+          m_cache(std::move(other.m_cache))
+    {
+    }
+
+    Camera& Camera::operator=(const Camera& other)
+    {
+        if (this != &other)
+        {
+            Spatial::operator=(other);
+            m_settings = other.m_settings;
+            m_target = other.m_target;
+            m_orbitDistance = other.m_orbitDistance;
+            *m_cache = *other.m_cache;
+            // Controller is not copied
+        }
+        return *this;
+    }
+
+    Camera& Camera::operator=(Camera&& other) noexcept
+    {
+        if (this != &other)
+        {
+            Spatial::operator=(std::move(other));
+            m_settings = other.m_settings;
+            m_target = other.m_target;
+            m_orbitDistance = other.m_orbitDistance;
+            m_cache = std::move(other.m_cache);
+            m_controller = std::move(other.m_controller);
+        }
+        return *this;
     }
 
     Camera Camera::createLookAt(const glm::vec3& position, const glm::vec3& target, const glm::vec3& up)
     {
         Camera camera{};
-        camera.m_position = position;
-        camera.m_worldUp = up;
 
         // Calculate forward direction
-        camera.m_forward = glm::normalize(target - position);
+        const auto forward{ glm::normalize(target - position) };
 
         // Calculate yaw and pitch from forward vector
-        camera.m_yaw = glm::degrees(std::atan2(camera.m_forward.z, camera.m_forward.x));
-        camera.m_pitch = glm::degrees(std::asin(camera.m_forward.y));
+        const auto yaw{ glm::degrees(std::atan2(forward.z, forward.x)) };
+        const auto pitch{ glm::degrees(std::asin(forward.y)) };
 
-        camera.updateCameraVectors();
+        // Set camera properties
+        camera.setPosition(position);
+        camera.setWorldUp(up);
+        camera.setOrientation(yaw, pitch);
+
         return camera;
     }
 
     const glm::mat4& Camera::getViewMatrix() const
     {
-        if (m_viewDirty)
+        if (m_cache->viewDirty)
         {
             if (m_settings.mode == CameraMode::Orbital && m_target.has_value())
             {
                 // For orbital camera, position is calculated based on target and distance
-                m_position = m_target.value() - m_forward * m_orbitDistance;
-                m_viewMatrix = glm::lookAt(m_position, m_target.value(), m_up);
+                const auto calculatedPosition{ m_target.value() - getForward() * m_orbitDistance };
+                m_cache->viewMatrix = glm::lookAt(calculatedPosition, m_target.value(), getUp());
             }
             else
             {
-                m_viewMatrix = glm::lookAt(m_position, m_position + m_forward, m_up);
+                m_cache->viewMatrix = glm::lookAt(getPosition(), getPosition() + getForward(), getUp());
             }
-            m_viewDirty = false;
+            m_cache->viewDirty = false;
         }
-        return m_viewMatrix;
+        return m_cache->viewMatrix;
     }
 
     const glm::mat4& Camera::getProjectionMatrix() const
     {
-        if (m_projectionDirty)
+        if (m_cache->projectionDirty)
         {
             if (m_settings.type == CameraType::Perspective)
             {
-                m_projectionMatrix = glm::perspective(
+                m_cache->projectionMatrix = glm::perspective(
                     glm::radians(m_settings.fieldOfView),
                     m_settings.aspectRatio,
                     m_settings.nearPlane,
@@ -89,8 +278,8 @@ namespace lgl
             else
             {
                 // Orthographic
-                const float orthoSize = m_settings.fieldOfView * 0.01f; // Scale factor
-                m_projectionMatrix = glm::ortho(
+                const float orthoSize{ m_settings.fieldOfView * 0.01f }; // Scale factor
+                m_cache->projectionMatrix = glm::ortho(
                     -orthoSize * m_settings.aspectRatio,
                     orthoSize * m_settings.aspectRatio,
                     -orthoSize,
@@ -99,153 +288,63 @@ namespace lgl
                     m_settings.farPlane
                 );
             }
-            m_projectionDirty = false;
+            m_cache->projectionDirty = false;
         }
-        return m_projectionMatrix;
-    }
-
-    void Camera::moveForward(const float distance)
-    {
-        m_position += m_forward * distance * m_settings.movementSpeed;
-        m_viewDirty = true;
-    }
-
-    void Camera::moveRight(const float distance)
-    {
-        m_position += m_right * distance * m_settings.movementSpeed;
-        m_viewDirty = true;
-    }
-
-    void Camera::moveUp(const float distance)
-    {
-        m_position += m_worldUp * distance * m_settings.movementSpeed;
-        m_viewDirty = true;
-    }
-
-    void Camera::rotate(const float yawOffset, const float pitchOffset)
-    {
-        m_yaw += yawOffset * m_settings.mouseSensitivity;
-        m_pitch += pitchOffset * m_settings.mouseSensitivity;
-
-        // Constrain pitch to avoid gimbal lock
-        m_pitch = std::clamp(m_pitch, -89.0f, 89.0f);
-
-        // Update vectors
-        updateCameraVectors();
-    }
-
-    void Camera::setRoll(const float roll)
-    {
-        m_roll = roll;
-        updateCameraVectors();
+        return m_cache->projectionMatrix;
     }
 
     void Camera::setTarget(const glm::vec3& target)
     {
         m_target = target;
-        m_viewDirty = true;
+        m_cache->viewDirty = true;
     }
 
     void Camera::clearTarget()
     {
         m_target.reset();
-        m_viewDirty = true;
+        m_cache->viewDirty = true;
     }
 
     void Camera::setOrbitDistance(const float distance)
     {
         m_orbitDistance = std::max(0.1f, distance);
-        m_viewDirty = true;
+        m_cache->viewDirty = true;
     }
 
     void Camera::setFieldOfView(const float fov)
     {
         m_settings.fieldOfView = std::clamp(fov, 1.0f, 170.0f);
-        m_projectionDirty = true;
+        m_cache->projectionDirty = true;
     }
 
     void Camera::setAspectRatio(const float aspectRatio)
     {
         m_settings.aspectRatio = aspectRatio;
-        m_projectionDirty = true;
+        m_cache->projectionDirty = true;
     }
 
     void Camera::setNearPlane(const float nearPlane)
     {
         m_settings.nearPlane = nearPlane;
-        m_projectionDirty = true;
+        m_cache->projectionDirty = true;
     }
 
     void Camera::setFarPlane(const float farPlane)
     {
         m_settings.farPlane = farPlane;
-        m_projectionDirty = true;
+        m_cache->projectionDirty = true;
     }
 
     void Camera::setCameraType(const CameraType type)
     {
         m_settings.type = type;
-        m_projectionDirty = true;
+        m_cache->projectionDirty = true;
     }
 
     void Camera::setCameraMode(const CameraMode mode)
     {
         m_settings.mode = mode;
-        m_viewDirty = true;
-    }
-
-    const glm::vec3& Camera::getPosition() const
-    {
-        return m_position;
-    }
-
-    const glm::vec3& Camera::getForward() const
-    {
-        return m_forward;
-    }
-
-    const glm::vec3& Camera::getUp() const
-    {
-        return m_up;
-    }
-
-    const glm::vec3& Camera::getRight() const
-    {
-        return m_right;
-    }
-
-    float Camera::getYaw() const
-    {
-        return m_yaw;
-    }
-
-    float Camera::getPitch() const
-    {
-        return m_pitch;
-    }
-
-    float Camera::getRoll() const
-    {
-        return m_roll;
-    }
-
-    void Camera::setPosition(const glm::vec3& position)
-    {
-        m_position = position;
-        m_viewDirty = true;
-    }
-
-    void Camera::setOrientation(const float yaw, const float pitch)
-    {
-        m_yaw = yaw;
-        m_pitch = std::clamp(pitch, -89.0f, 89.0f);
-        updateCameraVectors();
-    }
-
-    void Camera::setWorldUp(const glm::vec3& up)
-    {
-        m_worldUp = glm::normalize(up);
-        updateCameraVectors();
+        m_cache->viewDirty = true;
     }
 
     const Camera::CameraSettings& Camera::settings() const
@@ -261,7 +360,7 @@ namespace lgl
     Camera::Frustum Camera::extractFrustum() const
     {
         Frustum frustum{};
-        glm::mat4 vp = getProjectionMatrix() * getViewMatrix();
+        auto vp{ getProjectionMatrix() * getViewMatrix() };
 
         // Right plane
         frustum.planes[Frustum::Right].x = vp[0][3] - vp[0][0];
@@ -380,7 +479,7 @@ namespace lgl
     Camera::Ray Camera::createRayFromScreen(const glm::vec2& screenPos, const glm::vec2& screenSize) const
     {
         return {
-            .origin = m_position,
+            .origin = getPosition(),
             .direction = screenToWorld(screenPos, screenSize)
         };
     }
@@ -394,8 +493,8 @@ namespace lgl
             "  Orientation: {}, {}, {}\n"
             "  FOV: {}\n"
             "  Near/Far: {}/{}\n",
-            m_position.x, m_position.y, m_position.z,
-            m_yaw, m_pitch, m_roll,
+            getPosition().x, getPosition().y, getPosition().z,
+            getYaw(), getPitch(), getRoll(),
             m_settings.fieldOfView,
             m_settings.nearPlane, m_settings.farPlane
         );
@@ -406,10 +505,10 @@ namespace lgl
         t = std::clamp(t, 0.0f, 1.0f);
 
         // Interpolate position
-        m_position = glm::mix(m_position, target.m_position, t);
+        setPosition(glm::mix(getPosition(), target.getPosition(), t));
 
         // Interpolate orientation (careful with yaw wrapping)
-        auto yawDiff{ target.m_yaw - m_yaw };
+        auto yawDiff{ target.getYaw() - getYaw() };
         if (yawDiff > 180.0f)
         {
             yawDiff -= 360.0f;
@@ -418,19 +517,19 @@ namespace lgl
         {
             yawDiff += 360.0f;
         }
-
-        m_yaw += yawDiff * t;
-        m_pitch = glm::mix(m_pitch, target.m_pitch, t);
-        m_roll = glm::mix(m_roll, target.m_roll, t);
+        setOrientation(
+            getYaw() + yawDiff * t,
+            glm::mix(getPitch(), target.getPitch(), t),
+            glm::mix(getRoll(), target.getRoll(), t)
+        );
 
         // Interpolate settings
         m_settings.fieldOfView = glm::mix(m_settings.fieldOfView, target.m_settings.fieldOfView, t);
         m_settings.nearPlane = glm::mix(m_settings.nearPlane, target.m_settings.nearPlane, t);
         m_settings.farPlane = glm::mix(m_settings.farPlane, target.m_settings.farPlane, t);
 
-        // Update vectors and mark matrices as dirty
-        updateCameraVectors();
-        m_projectionDirty = true;
+        // Mark matrices as dirty
+        m_cache->projectionDirty = true;
     }
 
     FirstPersonController::FirstPersonController(const float initialX, const float initialY)
@@ -440,7 +539,7 @@ namespace lgl
 
     void FirstPersonController::update(Camera& camera, const float deltaTime)
     {
-        const float velocity = camera.settings().movementSpeed * deltaTime;
+        const auto velocity{ camera.movementSpeed() * deltaTime };
 
         if (m_keys[GLFW_KEY_W])
         {
