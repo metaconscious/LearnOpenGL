@@ -1,17 +1,21 @@
-#include "app/Image.h"
-#include "app/Shader.h"
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/ext/matrix_clip_space.hpp>
-#include <glm/ext/matrix_transform.hpp>
-
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <print>
 #include <ranges>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include "app/Camera.h"
+#include "app/Image.h"
+#include "app/Shader.h"
 
+constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
+constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
+
+auto currentWindowWidth{ DEFAULT_WINDOW_WIDTH };
+auto currentWindowHeight{ DEFAULT_WINDOW_HEIGHT };
 
 float vertices[] = {
     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
@@ -74,6 +78,8 @@ void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
                                     const int width,
                                     const int height)
 {
+    currentWindowWidth = width;
+    currentWindowHeight = height;
     glViewport(0, 0, width, height);
 }
 
@@ -95,7 +101,15 @@ int main(const int argc, char* argv[])
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    auto* window{ glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr) };
+    auto* window{
+        glfwCreateWindow(
+            DEFAULT_WINDOW_WIDTH,
+            DEFAULT_WINDOW_HEIGHT,
+            "LearnOpenGL",
+            nullptr,
+            nullptr
+        )
+    };
     if (window == nullptr)
     {
         std::println(stderr, "Failed to create GLFW window");
@@ -113,6 +127,12 @@ int main(const int argc, char* argv[])
     glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
 
     glEnable(GL_DEPTH_TEST);
+
+    auto cameraSettings{ lgl::Camera::DEFAULT_CAMERA_SETTINGS };
+    cameraSettings.aspectRatio = static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight);
+    cameraSettings.mode = lgl::CameraMode::FirstPerson;
+    lgl::CameraSystem cameraSystem{ window, cameraSettings };
+    auto& camera{ cameraSystem.getCamera() };
 
     const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
@@ -201,9 +221,19 @@ int main(const int argc, char* argv[])
     shader.setUniform("texture0", 0);
     shader.setUniform("texture1", 1);
 
+    float lastFrame{ 0.0f };
+
     while (!glfwWindowShouldClose(window))
     {
+        const auto currentFrame{ static_cast<float>(glfwGetTime()) };
+        const auto deltaTime{ currentFrame - lastFrame };
+        lastFrame = currentFrame;
+
+        // Update camera
+        cameraSystem.update(deltaTime);
+
         processInput(window);
+        camera.setAspectRatio(static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight));
 
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -214,22 +244,6 @@ int main(const int argc, char* argv[])
         glBindTexture(GL_TEXTURE_2D, texture1);
 
         shader.use();
-        shader.setUniform(
-            "view",
-            glm::translate(
-                glm::mat4(1.0f),
-                glm::vec3(0.0f, 0.0f, -3.0f)
-            )
-        );
-        shader.setUniform(
-            "projection",
-            glm::perspective(
-                glm::radians(45.0f),
-                800.0f / 600.0f,
-                0.1f,
-                100.0f
-            )
-        );
         glBindVertexArray(vertexArrayObject);
         for (auto&& [index, vec] : std::views::enumerate(cubePositions))
         {
@@ -240,9 +254,17 @@ int main(const int argc, char* argv[])
                         glm::mat4(1.0f),
                         vec
                     ),
-                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * index),
+                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * static_cast<float>(index)),
                     glm::vec3(1.0f, 0.3f, 0.5f)
                 )
+            );
+            shader.setUniform(
+                "view",
+                camera.getViewMatrix()
+            );
+            shader.setUniform(
+                "projection",
+                camera.getProjectionMatrix()
             );
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
