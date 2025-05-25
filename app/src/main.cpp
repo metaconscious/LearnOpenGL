@@ -5,7 +5,6 @@
 #include <ranges>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include "app/Camera.h"
 #include "app/Image.h"
@@ -132,7 +131,6 @@ int main(const int argc, char* argv[])
     cameraSettings.aspectRatio = static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight);
     cameraSettings.mode = lgl::CameraMode::FirstPerson;
     lgl::CameraSystem cameraSystem{ window, cameraSettings };
-    auto& camera{ cameraSystem.getCamera() };
 
     const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
@@ -221,19 +219,12 @@ int main(const int argc, char* argv[])
     shader.setUniform("texture0", 0);
     shader.setUniform("texture1", 1);
 
-    float lastFrame{ 0.0f };
-
     while (!glfwWindowShouldClose(window))
     {
-        const auto currentFrame{ static_cast<float>(glfwGetTime()) };
-        const auto deltaTime{ currentFrame - lastFrame };
-        lastFrame = currentFrame;
-
-        // Update camera
-        cameraSystem.update(deltaTime);
+        cameraSystem.update();
 
         processInput(window);
-        camera.setAspectRatio(static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight));
+        cameraSystem.getCamera().setAspectRatio(static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight));
 
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -260,11 +251,11 @@ int main(const int argc, char* argv[])
             );
             shader.setUniform(
                 "view",
-                camera.getViewMatrix()
+                cameraSystem.getCamera().getViewMatrix()
             );
             shader.setUniform(
                 "projection",
-                camera.getProjectionMatrix()
+                cameraSystem.getCamera().getProjectionMatrix()
             );
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }

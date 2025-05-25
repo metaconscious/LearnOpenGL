@@ -7,26 +7,118 @@
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace lgl
 {
+    // Constants to replace magic literals
+    namespace constants
+    {
+        // Default camera values
+        constexpr auto DEFAULT_YAW{ -90.0f };
+        constexpr auto DEFAULT_PITCH{ 0.0f };
+        constexpr auto DEFAULT_ROLL{ 0.0f };
+        constexpr auto DEFAULT_MOVEMENT_SPEED{ 5.0f };
+        constexpr auto DEFAULT_MOUSE_SENSITIVITY{ 0.1f };
+        constexpr auto DEFAULT_FOV{ 45.0f };
+        constexpr auto DEFAULT_ASPECT_RATIO{ 16.0f / 9.0f };
+        constexpr auto DEFAULT_NEAR_PLANE{ 0.1f };
+        constexpr auto DEFAULT_FAR_PLANE{ 1000.0f };
+        constexpr auto DEFAULT_ORBIT_DISTANCE{ 10.0f };
+
+        // Constraints
+        constexpr auto MIN_PITCH{ -89.0f };
+        constexpr auto MAX_PITCH{ 89.0f };
+        constexpr auto MIN_FOV{ 1.0f };
+        constexpr auto MAX_FOV{ 170.0f };
+        constexpr auto MIN_ORBIT_DISTANCE{ 0.1f };
+
+        // Vectors
+        constexpr glm::vec3 WORLD_UP{ 0.0f, 1.0f, 0.0f };
+        constexpr glm::vec3 WORLD_FORWARD{ 0.0f, 0.0f, -1.0f };
+        constexpr glm::vec3 WORLD_RIGHT{ 1.0f, 0.0f, 0.0f };
+        constexpr glm::vec3 DEFAULT_POSITION{ 0.0f, 0.0f, 3.0f };
+    }
+
+    // Forward declarations
+    class Spatial;
+
+    // Transform component for hierarchical transformations
+    class Transform
+    {
+    public:
+        Transform();
+        explicit Transform(const glm::vec3& position,
+                           const glm::quat& rotation = { 1.0f, 0.0f, 0.0f, 0.0f },
+                           const glm::vec3& scale = glm::vec3{ 1.0f });
+
+        // Local transformations
+        void setLocalPosition(const glm::vec3& position);
+        void setLocalRotation(const glm::quat& rotation);
+        void setLocalScale(const glm::vec3& scale);
+
+        [[nodiscard]] const glm::vec3& getLocalPosition() const;
+        [[nodiscard]] const glm::quat& getLocalRotation() const;
+        [[nodiscard]] const glm::vec3& getLocalScale() const;
+
+        // World transformations
+        [[nodiscard]] glm::vec3 getWorldPosition() const;
+        [[nodiscard]] glm::quat getWorldRotation() const;
+        [[nodiscard]] glm::vec3 getWorldScale() const;
+
+        void setWorldPosition(const glm::vec3& position);
+        void setWorldRotation(const glm::quat& rotation);
+
+        // Hierarchy
+        void setParent(Transform* parent);
+        [[nodiscard]] Transform* getParent() const;
+        void addChild(Transform* child);
+        void removeChild(const Transform* child);
+        [[nodiscard]] const std::vector<Transform*>& getChildren() const;
+
+        // Matrices
+        [[nodiscard]] glm::mat4 getLocalMatrix() const;
+        [[nodiscard]] glm::mat4 getWorldMatrix() const;
+
+        // Direction vectors in world space
+        [[nodiscard]] glm::vec3 forward() const;
+        [[nodiscard]] glm::vec3 up() const;
+        [[nodiscard]] glm::vec3 right() const;
+
+        // Utility methods
+        void lookAt(const glm::vec3& target, const glm::vec3& up = constants::WORLD_UP);
+
+    private:
+        glm::vec3 m_localPosition;
+        glm::quat m_localRotation;
+        glm::vec3 m_localScale;
+
+        Transform* m_parent;
+        std::vector<Transform*> m_children;
+
+        mutable bool m_worldMatrixDirty;
+        mutable glm::mat4 m_worldMatrix{};
+
+        void markDirty() const;
+        void updateWorldMatrix() const;
+    };
+
     // Base class for objects with position and orientation in 3D space
     class Spatial
     {
     public:
-        static constexpr auto MIN_PITCH{ -89.0f };
-        static constexpr auto MAX_PITCH{ 89.0f };
-
         // Constructor with default position and orientation
-        explicit Spatial(const glm::vec3& position = { 0.0f, 0.0f, 0.0f },
-                         float yaw = -90.0f,
-                         float pitch = 0.0f,
-                         float roll = 0.0f,
-                         const glm::vec3& worldUp = { 0.0f, 1.0f, 0.0f });
+        explicit Spatial(const glm::vec3& position = constants::DEFAULT_POSITION,
+                         float yaw = constants::DEFAULT_YAW,
+                         float pitch = constants::DEFAULT_PITCH,
+                         float roll = constants::DEFAULT_ROLL,
+                         const glm::vec3& worldUp = constants::WORLD_UP);
 
         // Copy/move constructors and assignment operators
         Spatial(const Spatial&) = default;
@@ -35,20 +127,25 @@ namespace lgl
         Spatial& operator=(Spatial&&) noexcept = default;
 
         virtual ~Spatial() = default;
-        // Position methods
+
+        // Transform methods
+        [[nodiscard]] Transform& getTransform();
+        [[nodiscard]] const Transform& getTransform() const;
+
+        // Legacy position methods (delegates to transform)
         void setPosition(const glm::vec3& position);
         [[nodiscard]] const glm::vec3& getPosition() const;
 
-        // Orientation methods
+        // Legacy orientation methods (delegates to transform)
         void setOrientation(float yaw, float pitch, float roll = 0.0f);
         [[nodiscard]] float getYaw() const;
         [[nodiscard]] float getPitch() const;
         [[nodiscard]] float getRoll() const;
 
-        // Direction vectors
-        [[nodiscard]] const glm::vec3& getForward() const;
-        [[nodiscard]] const glm::vec3& getUp() const;
-        [[nodiscard]] const glm::vec3& getRight() const;
+        // Legacy direction vectors (delegates to transform)
+        [[nodiscard]] glm::vec3 getForward() const;
+        [[nodiscard]] glm::vec3 getUp() const;
+        [[nodiscard]] glm::vec3 getRight() const;
         void setWorldUp(const glm::vec3& up);
 
         // Movement methods
@@ -62,29 +159,37 @@ namespace lgl
 
         // Rotation methods
         void rotate(float yawOffset, float pitchOffset);
+        void rotateAround(const glm::vec3& point, const glm::vec3& axis, float angle);
 
         // Matrix transformation
         [[nodiscard]] glm::mat4 getModelMatrix() const;
 
+        // Path following
+        void followPath(const std::vector<glm::vec3>& path, float t);
+
+        // Interpolation
+        void interpolateTo(const Spatial& target, float t);
+
     protected:
         // Core spatial properties
-        struct State
+        Transform m_transform;
+        float m_movementSpeed{ constants::DEFAULT_MOVEMENT_SPEED };
+
+        // Euler angles cache (for legacy support)
+        struct EulerAngles
         {
-            glm::vec3 position{ 0.0f, 0.0f, 0.0f };
-            glm::vec3 forward{ 0.0f, 0.0f, -1.0f };
-            glm::vec3 up{ 0.0f, 1.0f, 0.0f };
-            glm::vec3 right{ 1.0f, 0.0f, 0.0f };
-            glm::vec3 worldUp{ 0.0f, 1.0f, 0.0f };
-            float yaw{ -90.0f };
-            float pitch{ 0.0f };
-            float roll{ 0.0f };
-            float movementSpeed{ 5.0f };
+            float yaw{ constants::DEFAULT_YAW };
+            float pitch{ constants::DEFAULT_PITCH };
+            float roll{ constants::DEFAULT_ROLL };
         };
 
-        State m_state;
+        EulerAngles m_eulerAngles;
 
-        // Update direction vectors based on Euler angles
-        void updateVectors();
+        // Update Euler angles from quaternion
+        void updateEulerAngles();
+
+        // Update quaternion from Euler angles
+        void updateQuaternion();
 
         // Notify derived classes that spatial state has changed
         virtual void onSpatialChanged();
@@ -103,6 +208,20 @@ namespace lgl
         Free
     };
 
+    // Input action mapping
+    enum class CameraAction
+    {
+        MoveForward,
+        MoveBackward,
+        MoveLeft,
+        MoveRight,
+        MoveUp,
+        MoveDown,
+        RotateCamera,
+        ZoomIn,
+        ZoomOut
+    };
+
     // Forward declaration
     class CameraController;
 
@@ -111,19 +230,16 @@ namespace lgl
     public:
         struct CameraSettings
         {
-            float fieldOfView{ 45.0f };
-            float aspectRatio{ 16.0f / 9.0f };
-            float nearPlane{ 0.1f };
-            float farPlane{ 1000.0f };
-            float mouseSensitivity{ 0.1f };
+            float fieldOfView{ constants::DEFAULT_FOV };
+            float aspectRatio{ constants::DEFAULT_ASPECT_RATIO };
+            float nearPlane{ constants::DEFAULT_NEAR_PLANE };
+            float farPlane{ constants::DEFAULT_FAR_PLANE };
+            float mouseSensitivity{ constants::DEFAULT_MOUSE_SENSITIVITY };
             CameraType type{ CameraType::Perspective };
             CameraMode mode{ CameraMode::Free };
         };
 
         static const CameraSettings DEFAULT_CAMERA_SETTINGS;
-        static constexpr auto MIN_FOV{ 1.0f };
-        static constexpr auto MAX_FOV{ 170.0f };
-        static constexpr auto MIN_ORBIT_DISTANCE{ 0.1f };
 
     private:
         // Camera-specific parameters
@@ -131,7 +247,7 @@ namespace lgl
 
         // Target (for orbital camera)
         std::optional<glm::vec3> m_target;
-        float m_orbitDistance{ 10.0f };
+        float m_orbitDistance{ constants::DEFAULT_ORBIT_DISTANCE };
 
         // Controller
         std::unique_ptr<CameraController> m_controller;
@@ -164,7 +280,7 @@ namespace lgl
         // Create camera with position and target
         static Camera createLookAt(const glm::vec3& position,
                                    const glm::vec3& target,
-                                   const glm::vec3& up = { 0.0f, 1.0f, 0.0f });
+                                   const glm::vec3& up = constants::WORLD_UP);
 
         // Get view matrix
         [[nodiscard]] const glm::mat4& getViewMatrix() const;
@@ -184,10 +300,12 @@ namespace lgl
         void setFarPlane(float farPlane);
         void setCameraType(CameraType type);
         void setCameraMode(CameraMode mode);
+        void setMouseSensitivity(float sensitivity);
 
         // Other getters
         [[nodiscard]] const CameraSettings& settings() const;
         [[nodiscard]] std::optional<glm::vec3> optionalTarget() const;
+        [[nodiscard]] float getMouseSensitivity() const;
 
         // Frustum extraction for culling
         struct Frustum
@@ -219,6 +337,16 @@ namespace lgl
         void interpolateTo(const Camera& target, float t);
     };
 
+    // Input binding configuration
+    struct InputBinding
+    {
+        int key{ GLFW_KEY_UNKNOWN };
+        int mouseButton{ -1 };
+        bool isMouseMovement{ false };
+        bool isScrollWheel{ false };
+        CameraAction action{ CameraAction::MoveForward };
+    };
+
     // Camera controller interface
     class CameraController
     {
@@ -228,73 +356,92 @@ namespace lgl
         virtual void processKeyInput(Camera& camera, int key, int action) = 0;
         virtual void processMouseMovement(Camera& camera, float xOffset, float yOffset) = 0;
         virtual void processMouseScroll(Camera& camera, float yOffset) = 0;
+        virtual void processMouseButton(Camera& camera, int button, int action) = 0;
+
+        // Input binding configuration
+        void setInputBindings(const std::vector<InputBinding>& bindings);
+        [[nodiscard]] const std::vector<InputBinding>& getInputBindings() const;
+
+    protected:
+        std::vector<InputBinding> m_inputBindings;
+        std::unordered_map<int, CameraAction> m_keyBindings;
+        std::unordered_map<int, CameraAction> m_mouseButtonBindings;
+        std::optional<CameraAction> m_mouseMovementBinding;
+        std::optional<CameraAction> m_scrollWheelBinding;
+
+        void rebuildBindingMaps();
     };
 
     // First-person camera controller
-    class FirstPersonController : public CameraController
+    class FirstPersonController final : public CameraController
     {
+    public:
+        explicit FirstPersonController(float initialX = 0.0f, float initialY = 0.0f);
+
+        void update(Camera& camera, float deltaTime) override;
+        void processKeyInput(Camera& camera, int key, int action) override;
+        void processMouseMovement(Camera& camera, float xPos, float yPos) override;
+        void processMouseScroll(Camera& camera, float yOffset) override;
+        void processMouseButton(Camera& camera, int button, int action) override;
+
+        // Set default bindings
+        void setDefaultBindings();
+
     private:
         bool m_keys[1024] = { false };
         bool m_firstMouse{ true };
         float m_lastX{ 0.0f };
         float m_lastY{ 0.0f };
-
-    public:
-        explicit FirstPersonController(float initialX = 0.0f, float initialY = 0.0f);
-
-        void update(Camera& camera, float deltaTime) override;
-
-        void processKeyInput(Camera& camera, int key, int action) override;
-
-        void processMouseMovement(Camera& camera, float xPos, float yPos) override;
-
-        void processMouseScroll(Camera& camera, float yOffset) override;
+        std::array<bool, static_cast<size_t>(CameraAction::ZoomOut) + 1> m_actionStates{};
     };
 
     // Orbital camera controller
-    class OrbitalController : public CameraController
+    class OrbitalController final : public CameraController
     {
-    private:
-        bool m_rotating{ false };
-        float m_lastX{ 0.0f };
-        float m_lastY{ 0.0f };
-
     public:
         explicit OrbitalController(float initialX = 0.0f, float initialY = 0.0f);
 
         void update(Camera& camera, float deltaTime) override;
-
         void processKeyInput(Camera& camera, int key, int action) override;
-
         void processMouseMovement(Camera& camera, float xPos, float yPos) override;
-
         void processMouseScroll(Camera& camera, float yOffset) override;
+        void processMouseButton(Camera& camera, int button, int action) override;
 
         void setRotating(bool rotating);
+
+        // Set default bindings
+        void setDefaultBindings();
+
+    private:
+        bool m_rotating{ false };
+        float m_lastX{ 0.0f };
+        float m_lastY{ 0.0f };
+        bool m_actionStates[static_cast<size_t>(CameraAction::ZoomOut) + 1] = { false };
     };
 
     // Example usage with GLFW window
     class CameraSystem
     {
+    public:
+        explicit CameraSystem(GLFWwindow* window, const Camera::CameraSettings& settings = {});
+
+        void update();
+        [[nodiscard]] Camera& getCamera();
+        [[nodiscard]] const Camera& getCamera() const;
+
+        // Configure input bindings
+        void setInputBindings(const std::vector<InputBinding>& bindings) const;
+
     private:
         Camera m_camera;
         std::unique_ptr<CameraController> m_controller;
         GLFWwindow* m_window;
+        float m_lastFrameTime{ 0.0f };
 
         static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
         static void mouseCallback(GLFWwindow* window, double xPos, double yPos);
-
         static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
-
-    public:
-        explicit CameraSystem(GLFWwindow* window, const Camera::CameraSettings& settings = {});
-
-        void update(float deltaTime);
-
-        [[nodiscard]] Camera& getCamera();
-
-        [[nodiscard]] const Camera& getCamera() const;
+        static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
     };
 } // lgl
 
