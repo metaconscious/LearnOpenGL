@@ -130,6 +130,7 @@ int main(const int argc, char* argv[])
     auto cameraSettings{ lgl::Camera::DEFAULT_CAMERA_SETTINGS };
     cameraSettings.aspectRatio = static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight);
     cameraSettings.mode = lgl::CameraMode::FirstPerson;
+    cameraSettings.type = lgl::CameraType::Perspective;
     lgl::CameraSystem cameraSystem{ window, cameraSettings };
 
     const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
