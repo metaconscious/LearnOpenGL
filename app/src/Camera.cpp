@@ -1136,19 +1136,20 @@ namespace lgl
         : m_camera{ settings }, m_window{ window }
     {
         // Set up controller based on camera mode
-        if (settings.mode == CameraMode::FirstPerson)
+        switch (settings.mode)
         {
-            m_controller = std::make_unique<FirstPersonController>();
-        }
-        else if (settings.mode == CameraMode::Orbital)
-        {
-            m_controller = std::make_unique<OrbitalController>();
-            m_camera.setTarget(glm::vec3{ 0.0f });
-        }
-        else
-        {
-            std::println(stderr, "Unsupported camera mode is using. Defaulting to FirstPerson.");
-            m_controller = std::make_unique<FirstPersonController>();
+            case CameraMode::Orbital:
+                m_controller = std::make_unique<OrbitalController>();
+                m_camera.setTarget(glm::vec3{ 0.0f });
+                break;
+            case CameraMode::FirstPerson:
+                [[fallthrough]];
+            default:
+                if (settings.mode != CameraMode::FirstPerson)
+                {
+                    std::println(stderr, "Unsupported camera mode is using. Defaulting to FirstPerson.");
+                }
+                m_controller = std::make_unique<FirstPersonController>();
         }
 
         // Set up GLFW callbacks
