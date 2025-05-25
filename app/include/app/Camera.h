@@ -18,6 +18,9 @@ namespace lgl
     class Spatial
     {
     public:
+        static constexpr auto MIN_PITCH{ -89.0f };
+        static constexpr auto MAX_PITCH{ 89.0f };
+
         // Constructor with default position and orientation
         explicit Spatial(const glm::vec3& position = { 0.0f, 0.0f, 0.0f },
                          float yaw = -90.0f,
@@ -118,6 +121,9 @@ namespace lgl
         };
 
         static const CameraSettings DEFAULT_CAMERA_SETTINGS;
+        static constexpr auto MIN_FOV{ 1.0f };
+        static constexpr auto MAX_FOV{ 170.0f };
+        static constexpr auto MIN_ORBIT_DISTANCE{ 0.1f };
 
     private:
         // Camera-specific parameters

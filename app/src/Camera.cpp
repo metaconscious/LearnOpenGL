@@ -60,7 +60,7 @@ namespace lgl
     void Spatial::setOrientation(const float yaw, const float pitch, const float roll)
     {
         m_state.yaw = yaw;
-        m_state.pitch = std::clamp(pitch, -89.0f, 89.0f);
+        m_state.pitch = std::clamp(pitch, MIN_PITCH, MAX_PITCH);
         m_state.roll = roll;
         updateVectors();
     }
@@ -307,13 +307,13 @@ namespace lgl
 
     void Camera::setOrbitDistance(const float distance)
     {
-        m_orbitDistance = std::max(0.1f, distance);
+        m_orbitDistance = std::max(MIN_ORBIT_DISTANCE, distance);
         m_cache->viewDirty = true;
     }
 
     void Camera::setFieldOfView(const float fov)
     {
-        m_settings.fieldOfView = std::clamp(fov, 1.0f, 170.0f);
+        m_settings.fieldOfView = std::clamp(fov, MIN_FOV, MAX_FOV);
         m_cache->projectionDirty = true;
     }
 
