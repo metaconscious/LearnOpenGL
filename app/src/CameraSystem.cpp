@@ -21,7 +21,7 @@ namespace lgl
         if (const auto perspectiveCamera{ std::dynamic_pointer_cast<PerspectiveCamera>(m_camera) };
             perspectiveCamera != nullptr)
         {
-            perspectiveCamera->setAspectRatio(m_windowManager.getAspectRatio());
+            perspectiveCamera->setAspectRatio(m_windowManager.get().getAspectRatio());
         }
 
         // Create default controller
@@ -32,7 +32,7 @@ namespace lgl
         setupCallbacks();
 
         // Initial cursor state
-        m_inputManager.setCursorMode(GLFW_CURSOR_DISABLED);
+        m_inputManager.get().setCursorMode(GLFW_CURSOR_DISABLED);
     }
 
     std::shared_ptr<Camera> CameraSystem::getCamera()
@@ -75,7 +75,7 @@ namespace lgl
         if (const auto fpController{ std::dynamic_pointer_cast<FirstPersonController>(m_controller) };
             fpController != nullptr)
         {
-            m_inputManager.setCursorMode(
+            m_inputManager.get().setCursorMode(
                 fpController->isCursorEnabled()
                 ? GLFW_CURSOR_NORMAL
                 : GLFW_CURSOR_DISABLED
@@ -86,7 +86,7 @@ namespace lgl
     void CameraSystem::setupCallbacks() const
     {
         // Register for window resize events
-        m_windowManager.registerResizeCallback(
+        m_windowManager.get().registerResizeCallback(
             [this](const int width, const int height)
             {
                 // Update camera aspect ratio
@@ -102,7 +102,7 @@ namespace lgl
         );
 
         // Register input callbacks
-        m_inputManager.registerKeyCallback(
+        m_inputManager.get().registerKeyCallback(
             [this](const int key, const int scancode, const int action, const int mods)
             {
                 if (m_controller)
@@ -112,7 +112,7 @@ namespace lgl
             }
         );
 
-        m_inputManager.registerMouseMoveCallback(
+        m_inputManager.get().registerMouseMoveCallback(
             [this](const double xPos, const double yPos)
             {
                 if (m_controller)
@@ -122,7 +122,7 @@ namespace lgl
             }
         );
 
-        m_inputManager.registerMouseButtonCallback(
+        m_inputManager.get().registerMouseButtonCallback(
             [this](const int button, const int action, const int mods)
             {
                 if (m_controller)
@@ -132,7 +132,7 @@ namespace lgl
             }
         );
 
-        m_inputManager.registerScrollCallback(
+        m_inputManager.get().registerScrollCallback(
             [this](const double xOffset, const double yOffset)
             {
                 if (m_controller)

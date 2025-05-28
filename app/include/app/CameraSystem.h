@@ -37,8 +37,8 @@ namespace lgl
 
         std::shared_ptr<Camera> m_camera;
         std::shared_ptr<CameraController> m_controller;
-        InputManager& m_inputManager;
-        WindowManager& m_windowManager;
+        std::reference_wrapper<InputManager> m_inputManager;
+        std::reference_wrapper<WindowManager> m_windowManager;
     };
 
     template<typename T>
