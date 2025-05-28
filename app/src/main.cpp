@@ -145,13 +145,13 @@ int main(const int argc, char* argv[])
     const auto lightingShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/object_light.frag") };
     const auto lightSourceShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/light_source.frag") };
 
-    GLuint objectVertexArrayObject{};
-    glGenVertexArrays(1, &objectVertexArrayObject);
+    GLuint lightingVertexArrayObject{};
+    glGenVertexArrays(1, &lightingVertexArrayObject);
 
     GLuint vertexBufferObject{};
     glGenBuffers(1, &vertexBufferObject);
 
-    glBindVertexArray(objectVertexArrayObject);
+    glBindVertexArray(lightingVertexArrayObject);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -164,10 +164,10 @@ int main(const int argc, char* argv[])
                           nullptr);
     glEnableVertexAttribArray(0);
 
-    GLuint lightVertexArrayObject{};
-    glGenVertexArrays(1, &lightVertexArrayObject);
+    GLuint lightSourceVertexArrayObject{};
+    glGenVertexArrays(1, &lightSourceVertexArrayObject);
 
-    glBindVertexArray(lightVertexArrayObject);
+    glBindVertexArray(lightSourceVertexArrayObject);
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 
     glVertexAttribPointer(0,
@@ -198,7 +198,6 @@ int main(const int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
-        glBindVertexArray(objectVertexArrayObject);
         lightingShaderProgram.setUniform(
             "model",
             glm::mat4(1.0f)
@@ -211,10 +210,10 @@ int main(const int argc, char* argv[])
             "projection",
             camera->getProjectionMatrix()
         );
+        glBindVertexArray(lightingVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         lightSourceShaderProgram.use();
-        glBindVertexArray(lightVertexArrayObject);
         lightSourceShaderProgram.setUniform(
             "model",
             glm::scale(
@@ -227,6 +226,7 @@ int main(const int argc, char* argv[])
         );
         lightSourceShaderProgram.setUniform("view", camera->getViewMatrix());
         lightSourceShaderProgram.setUniform("projection", camera->getProjectionMatrix());
+        glBindVertexArray(lightSourceVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Note: double buffer is used by default for modern OpenGL
@@ -234,7 +234,8 @@ int main(const int argc, char* argv[])
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
     }
 
-    glDeleteVertexArrays(1, &objectVertexArrayObject);
+    glDeleteVertexArrays(1, &lightingVertexArrayObject);
+    glDeleteBuffers(1, &lightSourceVertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
 
     glfwTerminate();
