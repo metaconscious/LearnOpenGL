@@ -16,48 +16,48 @@
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
 
-float vertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
+float vertices[]{
+    -0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, 0.5f, -0.5f,
+    0.5f, 0.5f, -0.5f,
+    -0.5f, 0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
 
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 1.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f,
+    0.5f, -0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f,
 
-    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
 
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
 
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, -0.5f,
+    0.5f, -0.5f, 0.5f,
+    0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, -0.5f,
 
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f
+    -0.5f, 0.5f, -0.5f,
+    0.5f, 0.5f, -0.5f,
+    0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, -0.5f
 };
 
 glm::vec3 cubePositions[]{
@@ -72,7 +72,6 @@ glm::vec3 cubePositions[]{
     { 1.5f, 0.2f, -1.5f },
     { -1.3f, 1.0f, -1.5f }
 };
-
 
 void processInput(GLFWwindow* window)
 {
@@ -143,18 +142,16 @@ int main(const int argc, char* argv[])
     controller->setMoveSpeed(5.0f);
     controller->setMouseSensitivity(0.1f);
 
-    const auto shaderProgram{ lgl::ShaderProgram::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
+    const auto lightingShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/object_light.frag") };
+    const auto lightSourceShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/light_source.frag") };
 
-    GLuint vertexArrayObject{};
-    glGenVertexArrays(1, &vertexArrayObject);
+    GLuint objectVertexArrayObject{};
+    glGenVertexArrays(1, &objectVertexArrayObject);
 
     GLuint vertexBufferObject{};
     glGenBuffers(1, &vertexBufferObject);
 
-    GLuint elementBufferObject{};
-    glGenBuffers(1, &elementBufferObject);
-
-    glBindVertexArray(vertexArrayObject);
+    glBindVertexArray(objectVertexArrayObject);
 
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
@@ -163,72 +160,31 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          5 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          3 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1,
-                          2,
+    GLuint lightVertexArrayObject{};
+    glGenVertexArrays(1, &lightVertexArrayObject);
+
+    glBindVertexArray(lightVertexArrayObject);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+
+    glVertexAttribPointer(0,
+                          3,
                           GL_FLOAT,
                           GL_FALSE,
-                          5 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(sizeof(std::ranges::range_value_t<decltype(vertices)>) * 3));
-    glEnableVertexAttribArray(1);
-
-    const auto textureImage0{ lgl::loadImageAsTexture("resources/textures/container.jpg").flipVertically() };
-    const auto textureImage1{ lgl::loadImageAsTexture("resources/textures/awesomeface.png").flipVertically() };
-
-    GLuint texture0{};
-    glGenTextures(1, &texture0);
-
-    GLuint texture1{};
-    glGenTextures(1, &texture1);
-
-    glBindTexture(GL_TEXTURE_2D, texture0);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGB,
-                 static_cast<GLsizei>(textureImage0.width),
-                 static_cast<GLsizei>(textureImage0.height),
-                 0,
-                 GL_RGB,
-                 GL_UNSIGNED_BYTE,
-                 textureImage0.span().data());
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, texture1);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA,
-                 static_cast<GLsizei>(textureImage1.width),
-                 static_cast<GLsizei>(textureImage1.height),
-                 0,
-                 GL_RGBA,
-                 GL_UNSIGNED_BYTE,
-                 textureImage1.span().data());
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    glBindTexture(GL_TEXTURE_2D, 0);
+                          3 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          nullptr);
+    glEnableVertexAttribArray(0);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Optional
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    shaderProgram.use();
-    shaderProgram.setUniform("texture0", 0);
-    shaderProgram.setUniform("texture1", 1);
+    lightingShaderProgram.use();
+    lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
+    lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -238,48 +194,48 @@ int main(const int argc, char* argv[])
 
         processInput(window);
 
-        glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, texture0);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, texture1);
+        lightingShaderProgram.use();
+        glBindVertexArray(objectVertexArrayObject);
+        lightingShaderProgram.setUniform(
+            "model",
+            glm::mat4(1.0f)
+        );
+        lightingShaderProgram.setUniform(
+            "view",
+            camera->getViewMatrix()
+        );
+        lightingShaderProgram.setUniform(
+            "projection",
+            camera->getProjectionMatrix()
+        );
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        shaderProgram.use();
-        glBindVertexArray(vertexArrayObject);
-        for (auto&& [index, vec] : std::views::enumerate(cubePositions))
-        {
-            shaderProgram.setUniform(
-                "model",
-                glm::rotate(
-                    glm::translate(
-                        glm::mat4(1.0f),
-                        vec
-                    ),
-                    static_cast<float>(glfwGetTime()) * glm::radians(20.0f * static_cast<float>(index)),
-                    glm::vec3(1.0f, 0.3f, 0.5f)
-                )
-            );
-            shaderProgram.setUniform(
-                "view",
-                camera->getViewMatrix()
-            );
-            shaderProgram.setUniform(
-                "projection",
-                camera->getProjectionMatrix()
-            );
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        lightSourceShaderProgram.use();
+        glBindVertexArray(lightVertexArrayObject);
+        lightSourceShaderProgram.setUniform(
+            "model",
+            glm::scale(
+                glm::translate(
+                    glm::mat4(1.0f),
+                    glm::vec3(1.2f, 1.0f, 2.0f)
+                ),
+                glm::vec3(0.2)
+            )
+        );
+        lightSourceShaderProgram.setUniform("view", camera->getViewMatrix());
+        lightSourceShaderProgram.setUniform("projection", camera->getProjectionMatrix());
+        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
     }
 
-    glDeleteVertexArrays(1, &vertexArrayObject);
+    glDeleteVertexArrays(1, &objectVertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
-    glDeleteBuffers(1, &elementBufferObject);
 
     glfwTerminate();
 
