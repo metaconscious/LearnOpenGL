@@ -6,15 +6,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
-#include "app/Camera.h"
+#include "app/CameraSystem.h"
 #include "app/Image.h"
 #include "app/ShaderProgram.h"
 
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
-
-auto currentWindowWidth{ DEFAULT_WINDOW_WIDTH };
-auto currentWindowHeight{ DEFAULT_WINDOW_HEIGHT };
 
 float vertices[] = {
     -0.5f, -0.5f, -0.5f, 0.0f, 0.0f,
@@ -73,14 +70,6 @@ glm::vec3 cubePositions[]{
     { -1.3f, 1.0f, -1.5f }
 };
 
-void setViewportWithFramebufferSize([[maybe_unused]] GLFWwindow* window,
-                                    const int width,
-                                    const int height)
-{
-    currentWindowWidth = width;
-    currentWindowHeight = height;
-    glViewport(0, 0, width, height);
-}
 
 void processInput(GLFWwindow* window)
 {
@@ -123,15 +112,11 @@ int main(const int argc, char* argv[])
         return -1;
     }
 
-    glfwSetFramebufferSizeCallback(window, &setViewportWithFramebufferSize);
-
     glEnable(GL_DEPTH_TEST);
 
-    auto cameraSettings{ lgl::Camera::DEFAULT_CAMERA_SETTINGS };
-    cameraSettings.aspectRatio = static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight);
-    cameraSettings.mode = lgl::CameraMode::FirstPerson;
-    cameraSettings.type = lgl::CameraType::Perspective;
-    lgl::CameraSystem cameraSystem{ window, cameraSettings };
+    lgl::CameraSystem cameraSystem{ window };
+    const auto camera{ cameraSystem.getCamera<lgl::PerspectiveCamera>() };
+    camera->setAspectRatio(static_cast<float>(DEFAULT_WINDOW_WIDTH) / static_cast<float>(DEFAULT_WINDOW_HEIGHT));
 
     const auto shaderProgram{ lgl::ShaderProgram::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
@@ -225,7 +210,6 @@ int main(const int argc, char* argv[])
         cameraSystem.update();
 
         processInput(window);
-        cameraSystem.getCamera().setAspectRatio(static_cast<float>(currentWindowWidth) / static_cast<float>(currentWindowHeight));
 
         glClearColor(0.2f, 0.3f, 0.4f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -252,11 +236,11 @@ int main(const int argc, char* argv[])
             );
             shaderProgram.setUniform(
                 "view",
-                cameraSystem.getCamera().getViewMatrix()
+                camera->getViewMatrix()
             );
             shaderProgram.setUniform(
                 "projection",
-                cameraSystem.getCamera().getProjectionMatrix()
+                camera->getProjectionMatrix()
             );
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }

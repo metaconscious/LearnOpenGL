@@ -2,7 +2,7 @@
 // Created by user on 5/28/25.
 //
 
-#include "app/Camera.h"
+#include "app/CameraController.h"
 
 namespace lgl
 {
