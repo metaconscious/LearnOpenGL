@@ -5,63 +5,40 @@
 #ifndef LEARNOPENGL_APP_CAMERASYSTEM_H
 #define LEARNOPENGL_APP_CAMERASYSTEM_H
 
-#include <chrono>
 #include <memory>
-#include <unordered_map>
-#include <GLFW/glfw3.h>
-#include "app/FirstPersonController.h"
-#include "app/PerspectiveCamera.h"
+#include "app/Camera.h"
+#include "app/CameraController.h"
+#include "app/InputManager.h"
+#include "app/WindowManager.h"
 
 namespace lgl
 {
     class CameraSystem
     {
     public:
-        explicit CameraSystem(GLFWwindow* window);
-
-        ~CameraSystem();
+        CameraSystem(InputManager& inputManager, WindowManager& windowManager);
 
         std::shared_ptr<Camera> getCamera();
+        std::shared_ptr<CameraController> getController();
 
         template<typename T>
         std::shared_ptr<T> getCamera();
-
-        std::shared_ptr<CameraController> getController();
 
         template<typename T>
         std::shared_ptr<T> getController();
 
         void setCamera(const std::shared_ptr<Camera>& camera);
-
         void setController(const std::shared_ptr<CameraController>& controller);
 
-        void update();
+        void update(float deltaTime) const;
 
     private:
         void setupCallbacks() const;
 
-        // Static callback functions
-        static void framebufferSizeCallback(GLFWwindow* window, int width, int height);
-
-        static void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
-
-        static void mouseCallback(GLFWwindow* window, double xPos, double yPos);
-
-        static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-
-        static void scrollCallback(GLFWwindow* window, double xOffset, double yOffset);
-
-
-        GLFWwindow* m_window;
         std::shared_ptr<Camera> m_camera;
         std::shared_ptr<CameraController> m_controller;
-
-        // Timing
-        std::chrono::time_point<std::chrono::high_resolution_clock> m_lastFrameTime;
-        float m_deltaTime{ 0.0f };
-
-        // Callback pointers for GLFW
-        static std::unordered_map<GLFWwindow*, CameraSystem*> s_instances;
+        InputManager& m_inputManager;
+        WindowManager& m_windowManager;
     };
 
     template<typename T>
@@ -75,6 +52,6 @@ namespace lgl
     {
         return std::dynamic_pointer_cast<T>(m_controller);
     }
-} // lgl
+} // namespace lgl
 
 #endif //LEARNOPENGL_APP_CAMERASYSTEM_H

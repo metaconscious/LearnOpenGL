@@ -7,8 +7,11 @@
 #include <GLFW/glfw3.h>
 #include <glm/ext/matrix_transform.hpp>
 #include "app/CameraSystem.h"
+#include "app/FirstPersonController.h"
 #include "app/Image.h"
+#include "app/PerspectiveCamera.h"
 #include "app/ShaderProgram.h"
+#include "app/TimeManager.h"
 
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
@@ -114,9 +117,31 @@ int main(const int argc, char* argv[])
 
     glEnable(GL_DEPTH_TEST);
 
-    lgl::CameraSystem cameraSystem{ window };
+    lgl::TimeManager timeManager{};
+    lgl::InputManager inputManager{ window };
+    lgl::WindowManager windowManager{ window };
+    lgl::CameraSystem cameraSystem{ inputManager, windowManager };
+
     const auto camera{ cameraSystem.getCamera<lgl::PerspectiveCamera>() };
+    if (camera == nullptr)
+    {
+        std::println(stderr, "Failed to create camera");
+        return -1;
+    }
+
+    const auto controller{ cameraSystem.getController<lgl::FirstPersonController>() };
+    if (controller == nullptr)
+    {
+        std::println(stderr, "Failed to create controller");
+        return -1;
+    }
+
+    camera->setPosition({ 0.0f, 0.0f, 0.3f });
+    camera->setFov(45.0f);
     camera->setAspectRatio(static_cast<float>(DEFAULT_WINDOW_WIDTH) / static_cast<float>(DEFAULT_WINDOW_HEIGHT));
+
+    controller->setMoveSpeed(5.0f);
+    controller->setMouseSensitivity(0.1f);
 
     const auto shaderProgram{ lgl::ShaderProgram::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
@@ -207,7 +232,9 @@ int main(const int argc, char* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
-        cameraSystem.update();
+        timeManager.update();
+
+        cameraSystem.update(timeManager.getDeltaTime());
 
         processInput(window);
 

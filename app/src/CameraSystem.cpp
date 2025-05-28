@@ -4,38 +4,35 @@
 
 #include "app/CameraSystem.h"
 
+#include <GLFW/glfw3.h>
+#include "app/FirstPersonController.h"
+#include "app/PerspectiveCamera.h"
+
 namespace lgl
 {
-    CameraSystem::CameraSystem(GLFWwindow* window)
-        : m_window{ window },
-          m_lastFrameTime{ std::chrono::high_resolution_clock::now() }
+    CameraSystem::CameraSystem(InputManager& inputManager, WindowManager& windowManager)
+        : m_inputManager{ inputManager },
+          m_windowManager{ windowManager }
     {
         // Create default perspective camera
         m_camera = std::make_shared<PerspectiveCamera>();
+
+        // Set initial aspect ratio from window
+        if (const auto perspectiveCamera{ std::dynamic_pointer_cast<PerspectiveCamera>(m_camera) };
+            perspectiveCamera != nullptr)
+        {
+            perspectiveCamera->setAspectRatio(m_windowManager.getAspectRatio());
+        }
 
         // Create default controller
         m_controller = std::make_shared<FirstPersonController>();
         m_controller->setCamera(m_camera);
 
-        // Store instance for callbacks
-        s_instances.insert_or_assign(window, this);
-
-        // Set up GLFW callbacks
+        // Set up input callbacks
         setupCallbacks();
 
-        // Configure initial cursor state
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-
-        // Enable raw mouse motion if supported
-        if (glfwRawMouseMotionSupported())
-        {
-            glfwSetInputMode(window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
-        }
-    }
-
-    CameraSystem::~CameraSystem()
-    {
-        s_instances.erase(m_window);
+        // Initial cursor state
+        m_inputManager.setCursorMode(GLFW_CURSOR_DISABLED);
     }
 
     std::shared_ptr<Camera> CameraSystem::getCamera()
@@ -66,115 +63,83 @@ namespace lgl
         }
     }
 
-    void CameraSystem::update()
+    void CameraSystem::update(const float deltaTime) const
     {
-        // Calculate delta time
-        const auto currentTime{ std::chrono::high_resolution_clock::now() };
-        m_deltaTime = std::chrono::duration<float>{ currentTime - m_lastFrameTime }.count();
-        m_lastFrameTime = currentTime;
-
         // Update controller with current delta time
         if (m_controller)
         {
-            m_controller->update(m_deltaTime);
+            m_controller->update(deltaTime);
         }
 
         // Update cursor state based on controller
         if (const auto fpController{ std::dynamic_pointer_cast<FirstPersonController>(m_controller) };
             fpController != nullptr)
         {
-            glfwSetInputMode(m_window,
-                             GLFW_CURSOR,
-                             fpController->isCursorEnabled()
-                             ? GLFW_CURSOR_NORMAL
-                             : GLFW_CURSOR_DISABLED);
+            m_inputManager.setCursorMode(
+                fpController->isCursorEnabled()
+                ? GLFW_CURSOR_NORMAL
+                : GLFW_CURSOR_DISABLED
+            );
         }
     }
 
     void CameraSystem::setupCallbacks() const
     {
-        glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
-        glfwSetKeyCallback(m_window, keyCallback);
-        glfwSetCursorPosCallback(m_window, mouseCallback);
-        glfwSetMouseButtonCallback(m_window, mouseButtonCallback);
-        glfwSetScrollCallback(m_window, scrollCallback);
-    }
-
-    void CameraSystem::framebufferSizeCallback(GLFWwindow* window, const int width, const int height)
-    {
-        if (s_instances.contains(window))
-        {
-            const auto instance{ s_instances.at(window) };
-            // Update camera aspect ratio
-            if (const auto perspectiveCamera{ std::dynamic_pointer_cast<PerspectiveCamera>(instance->m_camera) };
-                perspectiveCamera != nullptr)
+        // Register for window resize events
+        m_windowManager.registerResizeCallback(
+            [this](const int width, const int height)
             {
-                const float aspectRatio{
-                    width > 0 && height > 0
-                    ? static_cast<float>(width) / static_cast<float>(height)
-                    : 1.0f
-                };
-                perspectiveCamera->setAspectRatio(aspectRatio);
+                // Update camera aspect ratio
+                if (const auto perspectiveCamera{ std::dynamic_pointer_cast<PerspectiveCamera>(m_camera) };
+                    perspectiveCamera != nullptr)
+                {
+                    const float aspectRatio = width > 0 && height > 0
+                                              ? static_cast<float>(width) / static_cast<float>(height)
+                                              : 1.0f;
+                    perspectiveCamera->setAspectRatio(aspectRatio);
+                }
             }
+        );
 
-            // Update viewport
-            glViewport(0, 0, width, height);
-        }
-    }
-
-    void CameraSystem::keyCallback(GLFWwindow* window,
-                                   const int key,
-                                   const int scancode,
-                                   const int action,
-                                   const int mods)
-    {
-        if (s_instances.contains(window))
-        {
-            if (const auto instance{ s_instances.at(window) };
-                instance->m_controller != nullptr)
+        // Register input callbacks
+        m_inputManager.registerKeyCallback(
+            [this](const int key, const int scancode, const int action, const int mods)
             {
-                instance->m_controller->processKeyInput(key, scancode, action, mods);
+                if (m_controller)
+                {
+                    m_controller->processKeyInput(key, scancode, action, mods);
+                }
             }
-        }
-    }
+        );
 
-    auto CameraSystem::mouseCallback(GLFWwindow* window, const double xPos, const double yPos) -> void
-    {
-        if (s_instances.contains(window))
-        {
-            if (const auto instance{ s_instances.at(window) };
-                instance->m_controller != nullptr)
+        m_inputManager.registerMouseMoveCallback(
+            [this](const double xPos, const double yPos)
             {
-                instance->m_controller->processMouseMovement(xPos, yPos);
+                if (m_controller)
+                {
+                    m_controller->processMouseMovement(xPos, yPos);
+                }
             }
-        }
-    }
+        );
 
-    void CameraSystem::mouseButtonCallback(GLFWwindow* window,
-                                           const int button,
-                                           const int action,
-                                           const int mods)
-    {
-        if (s_instances.contains(window))
-        {
-            if (const auto instance{ s_instances.at(window) }; instance->m_controller)
+        m_inputManager.registerMouseButtonCallback(
+            [this](const int button, const int action, const int mods)
             {
-                instance->m_controller->processMouseButton(button, action, mods);
+                if (m_controller)
+                {
+                    m_controller->processMouseButton(button, action, mods);
+                }
             }
-        }
-    }
+        );
 
-    void CameraSystem::scrollCallback(GLFWwindow* window, const double xOffset, const double yOffset)
-    {
-        if (s_instances.contains(window))
-        {
-            if (const auto instance{ s_instances.at(window) };
-                instance->m_controller)
+        m_inputManager.registerScrollCallback(
+            [this](const double xOffset, const double yOffset)
             {
-                instance->m_controller->processMouseScroll(xOffset, yOffset);
+                if (m_controller)
+                {
+                    m_controller->processMouseScroll(xOffset, yOffset);
+                }
             }
-        }
+        );
     }
-
-    std::unordered_map<GLFWwindow*, CameraSystem*> CameraSystem::s_instances{};
-} // lgl
+} // namespace lgl
