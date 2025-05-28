@@ -8,7 +8,7 @@
 #include <glm/ext/matrix_transform.hpp>
 #include "app/Camera.h"
 #include "app/Image.h"
-#include "app/Shader.h"
+#include "app/ShaderProgram.h"
 
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
@@ -133,7 +133,7 @@ int main(const int argc, char* argv[])
     cameraSettings.type = lgl::CameraType::Perspective;
     lgl::CameraSystem cameraSystem{ window, cameraSettings };
 
-    const auto shader{ lgl::Shader::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
+    const auto shaderProgram{ lgl::ShaderProgram::load("shaders/vertex.glsl", "shaders/fragment.glsl") };
 
     GLuint vertexArrayObject{};
     glGenVertexArrays(1, &vertexArrayObject);
@@ -216,9 +216,9 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    shader.use();
-    shader.setUniform("texture0", 0);
-    shader.setUniform("texture1", 1);
+    shaderProgram.use();
+    shaderProgram.setUniform("texture0", 0);
+    shaderProgram.setUniform("texture1", 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -235,11 +235,11 @@ int main(const int argc, char* argv[])
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture1);
 
-        shader.use();
+        shaderProgram.use();
         glBindVertexArray(vertexArrayObject);
         for (auto&& [index, vec] : std::views::enumerate(cubePositions))
         {
-            shader.setUniform(
+            shaderProgram.setUniform(
                 "model",
                 glm::rotate(
                     glm::translate(
@@ -250,11 +250,11 @@ int main(const int argc, char* argv[])
                     glm::vec3(1.0f, 0.3f, 0.5f)
                 )
             );
-            shader.setUniform(
+            shaderProgram.setUniform(
                 "view",
                 cameraSystem.getCamera().getViewMatrix()
             );
-            shader.setUniform(
+            shaderProgram.setUniform(
                 "projection",
                 cameraSystem.getCamera().getProjectionMatrix()
             );
