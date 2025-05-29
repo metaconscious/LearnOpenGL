@@ -195,6 +195,7 @@ int main(const int argc, char* argv[])
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
     constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
+    constexpr auto phase{ std::numbers::pi_v<float> / 4.0f };
 
     while (!glfwWindowShouldClose(window))
     {
@@ -203,16 +204,22 @@ int main(const int argc, char* argv[])
         cameraSystem.update(timeManager.getDeltaTime());
 
         const auto t{ static_cast<float>(glfwGetTime()) };
-        const auto strength{ std::sin(t) / 2.0f + 0.5f };
+        const auto ambientStrength{ std::sin(t) / 2.0f + 0.5f };
+        const auto diffuseStrength{ std::cos(t) / 2.0f + 0.5f };
+        const auto shininessValue{ 256.0f * (std::sin(t) / 2.0f + 0.5f) };
+        const auto specularStrength{ std::sin(t + phase) / 2.0f + 0.5f };
 
         processInput(window);
 
-        glClearColor(strength, strength, strength, 1.0f);
+        glClearColor(ambientStrength, ambientStrength, ambientStrength, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
 
-        lightingShaderProgram.setUniform("ambientStrength", strength);
+        lightingShaderProgram.setUniform("ambientStrength", ambientStrength);
+        lightingShaderProgram.setUniform("diffuseStrength", diffuseStrength);
+        lightingShaderProgram.setUniform("shininessValue", shininessValue);
+        lightingShaderProgram.setUniform("specularStrength", specularStrength);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("lightPos", lightPos);
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
