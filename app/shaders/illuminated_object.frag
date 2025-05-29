@@ -5,13 +5,13 @@ in vec3 FragPos;
 
 out vec4 FragColor;
 
+uniform float ambientStrength;
 uniform vec3 viewPos;
 uniform vec3 lightPos;
 uniform vec3 objectColor;
 uniform vec3 lightColor;
 
 void main() {
-    float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor;
 
     vec3 norm = normalize(Normal);

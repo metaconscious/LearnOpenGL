@@ -202,13 +202,17 @@ int main(const int argc, char* argv[])
 
         cameraSystem.update(timeManager.getDeltaTime());
 
+        const auto t{ static_cast<float>(glfwGetTime()) };
+        const auto strength{ std::sin(t) / 2.0f + 0.5f };
+
         processInput(window);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(strength, strength, strength, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
 
+        lightingShaderProgram.setUniform("ambientStrength", strength);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("lightPos", lightPos);
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
