@@ -209,8 +209,19 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
 
-        lightingShaderProgram.setUniform("viewPos", camera->getPosition());
-        lightingShaderProgram.setUniform("lightPos", lightPos);
+        lightingShaderProgram.setUniform("viewPos",
+                                         glm::vec3{
+                                             camera->getViewMatrix() * glm::vec4{
+                                                 camera->getPosition(),
+                                                 1.0f
+                                             }
+                                         });
+        lightingShaderProgram.setUniform("lightPos", glm::vec3{
+                                             camera->getViewMatrix() * glm::vec4{
+                                                 lightPos,
+                                                 1.0f
+                                             }
+                                         });
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 

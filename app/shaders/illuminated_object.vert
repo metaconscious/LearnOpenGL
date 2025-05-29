@@ -11,8 +11,10 @@ uniform mat4 view;
 uniform mat4 model;
 
 void main() {
-    FragPos = vec3(model * vec4(aPos, 1.0));
-    Normal = mat3(transpose(inverse(model))) * aNormal; // Expensive. Do this on CPU time
+    vec3 worldPos = vec3(model * vec4(aPos, 1.0));
+    vec3 viewPos = vec3(view * vec4(aPos, 1.0));
+    FragPos = viewPos;
+    Normal = mat3(transpose(inverse(view * model))) * aNormal; // Expensive. Do this on CPU time
 
-    gl_Position = projection * view * vec4(FragPos, 1.0);
+    gl_Position = projection * vec4(FragPos, 1.0);
 }
