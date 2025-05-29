@@ -194,13 +194,14 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
-
     while (!glfwWindowShouldClose(window))
     {
         timeManager.update();
 
         cameraSystem.update(timeManager.getDeltaTime());
+
+        const auto t{ static_cast<float>(glfwGetTime()) };
+        const glm::vec3 lightPos{ 1.2f * std::cos(t), 1.0f, 2.0f * std::sin(t) };
 
         processInput(window);
 
