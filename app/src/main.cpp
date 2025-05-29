@@ -209,15 +209,17 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
 
+        constexpr glm::mat4 illuminatedObjectModelMatrix{ 1.0f };
+        auto viewMatrix{ camera->getViewMatrix() };
         lightingShaderProgram.setUniform("viewPos",
                                          glm::vec3{
-                                             camera->getViewMatrix() * glm::vec4{
+                                             viewMatrix * glm::vec4{
                                                  camera->getPosition(),
                                                  1.0f
                                              }
                                          });
         lightingShaderProgram.setUniform("lightPos", glm::vec3{
-                                             camera->getViewMatrix() * glm::vec4{
+                                             viewMatrix * glm::vec4{
                                                  lightPos,
                                                  1.0f
                                              }
@@ -225,13 +227,20 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
+        lightingShaderProgram.setUniform("normalMatrix",
+                                         glm::transpose(
+                                             glm::inverse(
+                                                 glm::mat3{ viewMatrix * illuminatedObjectModelMatrix }
+                                             )
+                                         )
+        );
         lightingShaderProgram.setUniform(
             "model",
-            glm::mat4(1.0f)
+            illuminatedObjectModelMatrix
         );
         lightingShaderProgram.setUniform(
             "view",
-            camera->getViewMatrix()
+            viewMatrix
         );
         lightingShaderProgram.setUniform(
             "projection",
@@ -241,17 +250,20 @@ int main(const int argc, char* argv[])
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         lightSourceShaderProgram.use();
-        lightSourceShaderProgram.setUniform(
-            "model",
+        auto lightSourceModelMatrix{
             glm::scale(
                 glm::translate(
-                    glm::mat4(1.0f),
+                    glm::mat4{ 1.0f },
                     lightPos
                 ),
-                glm::vec3(0.2)
+                glm::vec3{ 0.2 }
             )
+        };
+        lightSourceShaderProgram.setUniform(
+            "model",
+            lightSourceModelMatrix
         );
-        lightSourceShaderProgram.setUniform("view", camera->getViewMatrix());
+        lightSourceShaderProgram.setUniform("view", viewMatrix);
         lightSourceShaderProgram.setUniform("projection", camera->getProjectionMatrix());
         glBindVertexArray(lightSourceVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
