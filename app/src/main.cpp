@@ -209,6 +209,7 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
 
+        lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("lightPos", lightPos);
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
         lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
