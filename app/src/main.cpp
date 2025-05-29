@@ -16,48 +16,48 @@
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
 
-float vertices[]{
-    -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, 0.5f, -0.5f,
-    0.5f, 0.5f, -0.5f,
-    -0.5f, 0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
+float vertices[] = {
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
 
-    -0.5f, -0.5f, 0.5f,
-    0.5f, -0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
 
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, -0.5f,
-    -0.5f, -0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
+    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
 
-    0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, -0.5f,
-    0.5f, -0.5f, 0.5f,
-    0.5f, -0.5f, 0.5f,
-    -0.5f, -0.5f, 0.5f,
-    -0.5f, -0.5f, -0.5f,
+    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
 
-    -0.5f, 0.5f, -0.5f,
-    0.5f, 0.5f, -0.5f,
-    0.5f, 0.5f, 0.5f,
-    0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, 0.5f,
-    -0.5f, 0.5f, -0.5f
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f
 };
 
 glm::vec3 cubePositions[]{
@@ -135,15 +135,19 @@ int main(const int argc, char* argv[])
         return -1;
     }
 
-    camera->setPosition({ 0.0f, 0.0f, 0.3f });
+    camera->setPosition({ 0.0f, 0.0f, 3.0f });
     camera->setFov(45.0f);
     camera->setAspectRatio(static_cast<float>(DEFAULT_WINDOW_WIDTH) / static_cast<float>(DEFAULT_WINDOW_HEIGHT));
 
     controller->setMoveSpeed(5.0f);
     controller->setMouseSensitivity(0.1f);
 
-    const auto lightingShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/object_light.frag") };
-    const auto lightSourceShaderProgram{ lgl::ShaderProgram::load("shaders/object.vert", "shaders/light_source.frag") };
+    const auto lightingShaderProgram{
+        lgl::ShaderProgram::load("shaders/illuminated_object.vert", "shaders/illuminated_object.frag")
+    };
+    const auto lightSourceShaderProgram{
+        lgl::ShaderProgram::load("shaders/light_source.vert", "shaders/light_source.frag")
+    };
 
     GLuint lightingVertexArrayObject{};
     glGenVertexArrays(1, &lightingVertexArrayObject);
@@ -160,9 +164,17 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          3 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1,
+                          3,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          reinterpret_cast<void*>(3 * sizeof(std::ranges::range_value_t<decltype(vertices)>)));
+    glEnableVertexAttribArray(1);
 
     GLuint lightSourceVertexArrayObject{};
     glGenVertexArrays(1, &lightSourceVertexArrayObject);
@@ -174,7 +186,7 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          3 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
 
@@ -182,9 +194,7 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    lightingShaderProgram.use();
-    lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
-    lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
+    constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
 
     while (!glfwWindowShouldClose(window))
     {
@@ -198,6 +208,11 @@ int main(const int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
+
+        lightingShaderProgram.setUniform("lightPos", lightPos);
+        lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
+        lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
+
         lightingShaderProgram.setUniform(
             "model",
             glm::mat4(1.0f)
@@ -219,7 +234,7 @@ int main(const int argc, char* argv[])
             glm::scale(
                 glm::translate(
                     glm::mat4(1.0f),
-                    glm::vec3(1.2f, 1.0f, 2.0f)
+                    lightPos
                 ),
                 glm::vec3(0.2)
             )

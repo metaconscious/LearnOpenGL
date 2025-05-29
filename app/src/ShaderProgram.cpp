@@ -137,17 +137,17 @@ namespace lgl
 
     void ShaderProgram::setUniform(const GLint location, const glm::ivec2& value)
     {
-        glUniform2iv(location, 2, glm::value_ptr(value));
+        glUniform2iv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::fvec2& value)
     {
-        glUniform2fv(location, 2, glm::value_ptr(value));
+        glUniform2fv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::uvec2& value)
     {
-        glUniform2uiv(location, 2, glm::value_ptr(value));
+        glUniform2uiv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::bvec2& value)
@@ -188,17 +188,17 @@ namespace lgl
 
     void ShaderProgram::setUniform(const GLint location, const glm::ivec3& value)
     {
-        glUniform3iv(location, 3, glm::value_ptr(value));
+        glUniform3iv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::fvec3& value)
     {
-        glUniform3fv(location, 3, glm::value_ptr(value));
+        glUniform3fv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::uvec3& value)
     {
-        glUniform3uiv(location, 3, glm::value_ptr(value));
+        glUniform3uiv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::bvec3& value)
@@ -246,17 +246,17 @@ namespace lgl
 
     void ShaderProgram::setUniform(const GLint location, const glm::ivec4& value)
     {
-        glUniform4iv(location, 4, glm::value_ptr(value));
+        glUniform4iv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::fvec4& value)
     {
-        glUniform4fv(location, 4, glm::value_ptr(value));
+        glUniform4fv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::uvec4& value)
     {
-        glUniform4uiv(location, 4, glm::value_ptr(value));
+        glUniform4uiv(location, 1, glm::value_ptr(value));
     }
 
     void ShaderProgram::setUniform(const GLint location, const glm::bvec4& value)
