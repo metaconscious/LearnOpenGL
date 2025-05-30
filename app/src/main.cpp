@@ -260,7 +260,7 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
+    constexpr glm::vec3 lightDirection{ -0.2f, -1.0f, -0.3f };
 
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
@@ -284,7 +284,7 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
         lightingShaderProgram.setUniform("material.shininess", 64.0f);
-        lightingShaderProgram.setUniform("light.position", lightPos);
+        lightingShaderProgram.setUniform("light.direction", lightDirection);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
         lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
@@ -334,9 +334,9 @@ int main(const int argc, char* argv[])
             glm::scale(
                 glm::translate(
                     glm::mat4{ 1.0f },
-                    lightPos
+                    glm::vec3{ 100.0f } * glm::normalize(-lightDirection)
                 ),
-                glm::vec3{ 0.2 }
+                glm::vec3{ 10.0f }
             )
         };
         lightSourceShaderProgram.setUniform(
