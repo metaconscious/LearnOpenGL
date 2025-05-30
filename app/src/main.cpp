@@ -221,7 +221,7 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("material.ambient", 0.0f, 0.1f, 0.06f);
         lightingShaderProgram.setUniform("material.diffuse", 0.0f, 0.50980392f, 0.50980392f);
         lightingShaderProgram.setUniform("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
-        lightingShaderProgram.setUniform("material.shininess", 0.25f);
+        lightingShaderProgram.setUniform("material.shininess", 0.25f * 128.0f);
         lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
