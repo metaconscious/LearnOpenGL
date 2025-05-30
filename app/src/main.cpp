@@ -198,6 +198,15 @@ int main(const int argc, char* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
+        const auto t{ static_cast<float>(glfwGetTime()) };
+        glm::vec3 lightColor{};
+        lightColor.x = std::sin(2.0f * t);
+        lightColor.y = std::sin(0.7f * t);
+        lightColor.z = std::sin(1.3f * t);
+
+        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
+        glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
+
         timeManager.update();
 
         cameraSystem.update(timeManager.getDeltaTime());
@@ -214,8 +223,8 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("material.specular", 0.5f, 0.5f, 0.5f);
         lightingShaderProgram.setUniform("material.shininess", 32.0f);
         lightingShaderProgram.setUniform("light.position", lightPos);
-        lightingShaderProgram.setUniform("light.ambient", 0.2f, 0.2f, 0.2f);
-        lightingShaderProgram.setUniform("light.diffuse", 0.5f, 0.5f, 0.5f);
+        lightingShaderProgram.setUniform("light.ambient", ambientColor);
+        lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
         lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
@@ -240,6 +249,7 @@ int main(const int argc, char* argv[])
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
         lightSourceShaderProgram.use();
+        lightSourceShaderProgram.setUniform("lightColor", lightColor);
         const auto lightSourceModelMatrix{
             glm::scale(
                 glm::translate(
