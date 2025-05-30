@@ -151,7 +151,7 @@ int main(const int argc, char* argv[])
     };
     const auto specularTextureImage{
         lgl::loadImageAsTexture(
-            "resources/textures/container2_specular.png"
+            "resources/textures/container2_specular_colored.png"
         )
        .flipVertically()
     };
