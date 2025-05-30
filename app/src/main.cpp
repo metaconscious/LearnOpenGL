@@ -157,7 +157,7 @@ int main(const int argc, char* argv[])
     };
     const auto emissionTextureImage{
         lgl::loadImageAsTexture(
-            "resources/textures/matrix.jpg"
+            "resources/textures/matrix.png"
         )
        .flipVertically()
     };
@@ -260,11 +260,11 @@ int main(const int argc, char* argv[])
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
-        GL_RGB,
+        GL_RGBA,
         static_cast<GLsizei>(emissionTextureImage.width),
         static_cast<GLsizei>(emissionTextureImage.height),
         0,
-        GL_RGB,
+        GL_RGBA,
         GL_UNSIGNED_BYTE,
         emissionTextureImage.span().data()
     );
