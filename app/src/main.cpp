@@ -291,29 +291,42 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
 
-        constexpr glm::mat4 illuminatedObjectModelMatrix{ 1.0f };
         const auto viewMatrix{ camera->getViewMatrix() };
-        const auto normalMatrix{ glm::transpose(glm::inverse(glm::mat3{ illuminatedObjectModelMatrix })) };
-        lightingShaderProgram.setUniform("normalMatrix", normalMatrix);
-        lightingShaderProgram.setUniform(
-            "model",
-            illuminatedObjectModelMatrix
-        );
-        lightingShaderProgram.setUniform(
-            "view",
-            viewMatrix
-        );
-        lightingShaderProgram.setUniform(
-            "projection",
-            camera->getProjectionMatrix()
-        );
+        const auto projectionMatrix{ camera->getProjectionMatrix() };
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
         glBindVertexArray(lightingVertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        for (auto&& [index, position] : std::views::enumerate(cubePositions))
+        {
+            const auto illuminatedObjectModelMatrix{
+                glm::rotate(
+                    glm::translate(glm::mat4{ 1.0f }, position),
+                    glm::radians(20.0f * index),
+                    glm::vec3{ 1.0f, 0.3f, 0.5f }
+                )
+            };
+            const auto normalMatrix{ glm::transpose(glm::inverse(glm::mat3{ illuminatedObjectModelMatrix })) };
+            lightingShaderProgram.setUniform("normalMatrix", normalMatrix);
+            lightingShaderProgram.setUniform(
+                "model",
+                illuminatedObjectModelMatrix
+            );
+            lightingShaderProgram.setUniform(
+                "view",
+                viewMatrix
+            );
+            lightingShaderProgram.setUniform(
+                "projection",
+                projectionMatrix
+            );
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         lightSourceShaderProgram.use();
         lightSourceShaderProgram.setUniform("lightColor", lightColor);
@@ -331,7 +344,7 @@ int main(const int argc, char* argv[])
             lightSourceModelMatrix
         );
         lightSourceShaderProgram.setUniform("view", viewMatrix);
-        lightSourceShaderProgram.setUniform("projection", camera->getProjectionMatrix());
+        lightSourceShaderProgram.setUniform("projection", projectionMatrix);
         glBindVertexArray(lightSourceVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
