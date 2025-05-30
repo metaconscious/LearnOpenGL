@@ -16,48 +16,49 @@
 constexpr auto DEFAULT_WINDOW_WIDTH{ 800 };
 constexpr auto DEFAULT_WINDOW_HEIGHT{ 600 };
 
-float vertices[] = {
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f,
+float vertices[]{
+    // positions         // normals        / texture coords
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f,
 
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
 
-    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    -0.5f, -0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 
-    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-    0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-    -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f,
-    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
+    0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f, -0.5f, 0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f,
 
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f,
-    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+    0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+    0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f,
+    -0.5f, 0.5f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f,
+    -0.5f, 0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f
 };
 
 glm::vec3 cubePositions[]{
@@ -142,6 +143,8 @@ int main(const int argc, char* argv[])
     controller->setMoveSpeed(5.0f);
     controller->setMouseSensitivity(0.1f);
 
+    const auto textureImage{ lgl::loadImageAsTexture("resources/textures/container2.png").flipVertically() };
+
     const auto lightingShaderProgram{
         lgl::ShaderProgram::load("shaders/illuminated_object.vert", "shaders/illuminated_object.frag")
     };
@@ -164,7 +167,7 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
 
@@ -172,9 +175,39 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           reinterpret_cast<void*>(3 * sizeof(std::ranges::range_value_t<decltype(vertices)>)));
     glEnableVertexAttribArray(1);
+
+    glVertexAttribPointer(2,
+                          2,
+                          GL_FLOAT,
+                          GL_FALSE,
+                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          reinterpret_cast<void*>(6 * sizeof(std::ranges::range_value_t<decltype(vertices)>)));
+    glEnableVertexAttribArray(2);
+
+    GLuint diffuseMap{};
+    glGenTextures(1, &diffuseMap);
+    glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        static_cast<GLsizei>(textureImage.width),
+        static_cast<GLsizei>(textureImage.height),
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        textureImage.span().data()
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
 
     GLuint lightSourceVertexArrayObject{};
     glGenVertexArrays(1, &lightSourceVertexArrayObject);
@@ -186,7 +219,7 @@ int main(const int argc, char* argv[])
                           3,
                           GL_FLOAT,
                           GL_FALSE,
-                          6 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
+                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
                           nullptr);
     glEnableVertexAttribArray(0);
 
@@ -196,16 +229,15 @@ int main(const int argc, char* argv[])
 
     constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
 
+    lightingShaderProgram.use();
+    lightingShaderProgram.setUniform("material.diffuse", 0);
+
     while (!glfwWindowShouldClose(window))
     {
-        const auto t{ static_cast<float>(glfwGetTime()) };
-        glm::vec3 lightColor{};
-        lightColor.x = std::sin(2.0f * t);
-        lightColor.y = std::sin(0.7f * t);
-        lightColor.z = std::sin(1.3f * t);
+        glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
 
-        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
         glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
+        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
 
         timeManager.update();
 
@@ -217,11 +249,8 @@ int main(const int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
-
-        lightingShaderProgram.setUniform("material.ambient", 1.0f, 0.5f, 0.31f);
-        lightingShaderProgram.setUniform("material.diffuse", 1.0f, 0.5f, 0.31f);
         lightingShaderProgram.setUniform("material.specular", 0.5f, 0.5f, 0.5f);
-        lightingShaderProgram.setUniform("material.shininess", 32.0f);
+        lightingShaderProgram.setUniform("material.shininess", 64.0f);
         lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
@@ -245,6 +274,9 @@ int main(const int argc, char* argv[])
             "projection",
             camera->getProjectionMatrix()
         );
+        glActiveTexture(diffuseMap);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
         glBindVertexArray(lightingVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
