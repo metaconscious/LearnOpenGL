@@ -155,7 +155,7 @@ int main(const int argc, char* argv[])
         )
        .flipVertically()
     };
-    const auto emissiveTextureImage{
+    const auto emissionTextureImage{
         lgl::loadImageAsTexture(
             "resources/textures/matrix.jpg"
         )
@@ -248,9 +248,9 @@ int main(const int argc, char* argv[])
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
-    GLuint emissiveTexture{};
-    glGenTextures(1, &emissiveTexture);
-    glBindTexture(GL_TEXTURE_2D, emissiveTexture);
+    GLuint emissionMap{};
+    glGenTextures(1, &emissionMap);
+    glBindTexture(GL_TEXTURE_2D, emissionMap);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -261,12 +261,12 @@ int main(const int argc, char* argv[])
         GL_TEXTURE_2D,
         0,
         GL_RGB,
-        static_cast<GLsizei>(emissiveTextureImage.width),
-        static_cast<GLsizei>(emissiveTextureImage.height),
+        static_cast<GLsizei>(emissionTextureImage.width),
+        static_cast<GLsizei>(emissionTextureImage.height),
         0,
         GL_RGB,
         GL_UNSIGNED_BYTE,
-        emissiveTextureImage.span().data()
+        emissionTextureImage.span().data()
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -294,7 +294,7 @@ int main(const int argc, char* argv[])
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
     lightingShaderProgram.setUniform("material.specular", 1);
-    lightingShaderProgram.setUniform("material.emissive", 2);
+    lightingShaderProgram.setUniform("material.emission", 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -342,7 +342,7 @@ int main(const int argc, char* argv[])
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
         glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emissiveTexture);
+        glBindTexture(GL_TEXTURE_2D, emissionMap);
 
         glBindVertexArray(lightingVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
