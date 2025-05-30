@@ -155,6 +155,12 @@ int main(const int argc, char* argv[])
         )
        .flipVertically()
     };
+    const auto emissiveTextureImage{
+        lgl::loadImageAsTexture(
+            "resources/textures/matrix.jpg"
+        )
+       .flipVertically()
+    };
 
     const auto lightingShaderProgram{
         lgl::ShaderProgram::load("shaders/illuminated_object.vert", "shaders/illuminated_object.frag")
@@ -242,6 +248,29 @@ int main(const int argc, char* argv[])
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
+    GLuint emissiveTexture{};
+    glGenTextures(1, &emissiveTexture);
+    glBindTexture(GL_TEXTURE_2D, emissiveTexture);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGB,
+        static_cast<GLsizei>(emissiveTextureImage.width),
+        static_cast<GLsizei>(emissiveTextureImage.height),
+        0,
+        GL_RGB,
+        GL_UNSIGNED_BYTE,
+        emissiveTextureImage.span().data()
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+
     GLuint lightSourceVertexArrayObject{};
     glGenVertexArrays(1, &lightSourceVertexArrayObject);
 
@@ -265,6 +294,7 @@ int main(const int argc, char* argv[])
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
     lightingShaderProgram.setUniform("material.specular", 1);
+    lightingShaderProgram.setUniform("material.emissive", 2);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -311,6 +341,8 @@ int main(const int argc, char* argv[])
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
+        glActiveTexture(GL_TEXTURE2);
+        glBindTexture(GL_TEXTURE_2D, emissiveTexture);
 
         glBindVertexArray(lightingVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);
