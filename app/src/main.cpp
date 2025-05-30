@@ -268,10 +268,11 @@ int main(const int argc, char* argv[])
 
     while (!glfwWindowShouldClose(window))
     {
-        glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
+        constexpr glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
 
-        glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
-        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
+        constexpr glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
+        constexpr glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
+        constexpr glm::vec3 specularColor{ lightColor * glm::vec3{ 1.0f } };
 
         timeManager.update();
 
@@ -287,7 +288,7 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
-        lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShaderProgram.setUniform("light.specular", specularColor);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
 
