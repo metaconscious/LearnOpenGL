@@ -209,10 +209,16 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
 
+        lightingShaderProgram.setUniform("material.ambient", 1.0f, 0.5f, 0.31f);
+        lightingShaderProgram.setUniform("material.diffuse", 1.0f, 0.5f, 0.31f);
+        lightingShaderProgram.setUniform("material.specular", 0.5f, 0.5f, 0.5f);
+        lightingShaderProgram.setUniform("material.shininess", 32.0f);
+        lightingShaderProgram.setUniform("light.position", lightPos);
+        lightingShaderProgram.setUniform("light.ambient", 0.2f, 0.2f, 0.2f);
+        lightingShaderProgram.setUniform("light.diffuse", 0.5f, 0.5f, 0.5f);
+        lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
-        lightingShaderProgram.setUniform("lightPos", lightPos);
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
-        lightingShaderProgram.setUniform("lightColor", 1.0f, 1.0f, 1.0f);
 
         constexpr glm::mat4 illuminatedObjectModelMatrix{ 1.0f };
         const auto viewMatrix{ camera->getViewMatrix() };
