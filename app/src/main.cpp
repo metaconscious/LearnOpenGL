@@ -143,7 +143,18 @@ int main(const int argc, char* argv[])
     controller->setMoveSpeed(5.0f);
     controller->setMouseSensitivity(0.1f);
 
-    const auto textureImage{ lgl::loadImageAsTexture("resources/textures/container2.png").flipVertically() };
+    const auto diffuseTextureImage{
+        lgl::loadImageAsTexture(
+            "resources/textures/container2.png"
+        )
+       .flipVertically()
+    };
+    const auto specularTextureImage{
+        lgl::loadImageAsTexture(
+            "resources/textures/container2_specular.png"
+        )
+       .flipVertically()
+    };
 
     const auto lightingShaderProgram{
         lgl::ShaderProgram::load("shaders/illuminated_object.vert", "shaders/illuminated_object.frag")
@@ -200,12 +211,34 @@ int main(const int argc, char* argv[])
         GL_TEXTURE_2D,
         0,
         GL_RGBA,
-        static_cast<GLsizei>(textureImage.width),
-        static_cast<GLsizei>(textureImage.height),
+        static_cast<GLsizei>(diffuseTextureImage.width),
+        static_cast<GLsizei>(diffuseTextureImage.height),
         0,
         GL_RGBA,
         GL_UNSIGNED_BYTE,
-        textureImage.span().data()
+        diffuseTextureImage.span().data()
+    );
+    glGenerateMipmap(GL_TEXTURE_2D);
+
+    GLuint specularMap{};
+    glGenTextures(1, &specularMap);
+    glBindTexture(GL_TEXTURE_2D, specularMap);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(
+        GL_TEXTURE_2D,
+        0,
+        GL_RGBA,
+        static_cast<GLsizei>(specularTextureImage.width),
+        static_cast<GLsizei>(specularTextureImage.height),
+        0,
+        GL_RGBA,
+        GL_UNSIGNED_BYTE,
+        specularTextureImage.span().data()
     );
     glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -231,6 +264,7 @@ int main(const int argc, char* argv[])
 
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
+    lightingShaderProgram.setUniform("material.specular", 1);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -249,7 +283,6 @@ int main(const int argc, char* argv[])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         lightingShaderProgram.use();
-        lightingShaderProgram.setUniform("material.specular", 0.5f, 0.5f, 0.5f);
         lightingShaderProgram.setUniform("material.shininess", 64.0f);
         lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
@@ -274,8 +307,10 @@ int main(const int argc, char* argv[])
             "projection",
             camera->getProjectionMatrix()
         );
-        glActiveTexture(diffuseMap);
+        glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
 
         glBindVertexArray(lightingVertexArrayObject);
         glDrawArrays(GL_TRIANGLES, 0, 36);

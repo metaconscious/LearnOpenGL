@@ -26,7 +26,7 @@ namespace lgl
 
         // Cursor state management
         void setCursorMode(int mode) const;
-        int getCursorMode() const;
+        [[nodiscard]] int getCursorMode() const;
 
     private:
         // GLFW callback handling
