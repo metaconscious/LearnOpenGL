@@ -204,8 +204,8 @@ int main(const int argc, char* argv[])
         lightColor.y = std::sin(0.7f * t);
         lightColor.z = std::sin(1.3f * t);
 
-        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
-        glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
+        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 1.0f } };
+        glm::vec3 ambientColor{ lightColor * glm::vec3{ 1.0f } };
 
         timeManager.update();
 
@@ -218,10 +218,10 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
 
-        lightingShaderProgram.setUniform("material.ambient", 1.0f, 0.5f, 0.31f);
-        lightingShaderProgram.setUniform("material.diffuse", 1.0f, 0.5f, 0.31f);
-        lightingShaderProgram.setUniform("material.specular", 0.5f, 0.5f, 0.5f);
-        lightingShaderProgram.setUniform("material.shininess", 32.0f);
+        lightingShaderProgram.setUniform("material.ambient", 0.0f, 0.1f, 0.06f);
+        lightingShaderProgram.setUniform("material.diffuse", 0.0f, 0.50980392f, 0.50980392f);
+        lightingShaderProgram.setUniform("material.specular", 0.50196078f, 0.50196078f, 0.50196078f);
+        lightingShaderProgram.setUniform("material.shininess", 0.25f);
         lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
