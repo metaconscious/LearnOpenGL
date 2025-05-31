@@ -287,6 +287,7 @@ int main(const int argc, char* argv[])
         lightingShaderProgram.setUniform("light.position", camera->getPosition());
         lightingShaderProgram.setUniform("light.direction", camera->getForwardVector());
         lightingShaderProgram.setUniform("light.cutoff", glm::cos(glm::radians(12.5f)));
+        lightingShaderProgram.setUniform("light.outerCutoff", glm::cos(glm::radians(17.5f)));
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
         lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);

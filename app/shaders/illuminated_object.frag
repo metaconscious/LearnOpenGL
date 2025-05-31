@@ -12,6 +12,7 @@ struct Light
     vec3 position;
     vec3 direction;
     float cutoff;
+    float outerCutoff;
 
     vec3 ambient;
     vec3 diffuse;
@@ -41,26 +42,19 @@ void main() {
 
     vec3 lightDirection = normalize(light.position - FragPos);
     float theta = dot(lightDirection, normalize(-light.direction));
+    float epsilon = light.cutoff - light.outerCutoff;
+    float intensity = clamp((theta - light.outerCutoff) / epsilon, 0.0, 1.0);
 
-    vec3 result;
+    vec3 norm = normalize(Normal);
+    float diff = max(dot(norm, lightDirection), 0.0);
+    vec3 diffuse = light.diffuse * (diff * vec3(texture(material.diffuse, TexCoords)));
 
-    if (theta > light.cutoff)
-    {
-        vec3 norm = normalize(Normal);
-        float diff = max(dot(norm, lightDirection), 0.0);
-        vec3 diffuse = light.diffuse * (diff * vec3(texture(material.diffuse, TexCoords)));
+    vec3 viewDirection = normalize(viewPos - FragPos);
+    vec3 reflectDirection = reflect(-lightDirection, norm);
+    float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
+    vec3 specular = light.specular * (spec * vec3(texture(material.specular, TexCoords)));
 
-        vec3 viewDirection = normalize(viewPos - FragPos);
-        vec3 reflectDirection = reflect(-lightDirection, norm);
-        float spec = pow(max(dot(viewDirection, reflectDirection), 0.0), material.shininess);
-        vec3 specular = light.specular * (spec * vec3(texture(material.specular, TexCoords)));
-
-        result = attenuation * (ambient + diffuse + specular) * objectColor;
-    }
-    else
-    {
-        result = ambient * objectColor;
-    }
+    vec3 result = attenuation * (ambient + intensity * (diffuse + specular)) * objectColor;
 
     FragColor = vec4(result, 1.0);
 }
