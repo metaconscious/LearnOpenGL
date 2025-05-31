@@ -260,7 +260,7 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    constexpr glm::vec3 lightDirection{ -0.2f, -1.0f, -0.3f };
+    constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
 
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
@@ -284,10 +284,13 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
         lightingShaderProgram.setUniform("material.shininess", 64.0f);
-        lightingShaderProgram.setUniform("light.direction", lightDirection);
+        lightingShaderProgram.setUniform("light.position", lightPos);
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
         lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShaderProgram.setUniform("light.constant", 1.0f);
+        lightingShaderProgram.setUniform("light.linear", 0.09f);
+        lightingShaderProgram.setUniform("light.quadratic", 0.032f);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
         lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
 
@@ -306,7 +309,7 @@ int main(const int argc, char* argv[])
             const auto illuminatedObjectModelMatrix{
                 glm::rotate(
                     glm::translate(glm::mat4{ 1.0f }, position),
-                    glm::radians(20.0f * index),
+                    glm::radians(20.0f * static_cast<float>(index)),
                     glm::vec3{ 1.0f, 0.3f, 0.5f }
                 )
             };
@@ -334,9 +337,9 @@ int main(const int argc, char* argv[])
             glm::scale(
                 glm::translate(
                     glm::mat4{ 1.0f },
-                    glm::vec3{ 100.0f } * glm::normalize(-lightDirection)
+                    lightPos
                 ),
-                glm::vec3{ 10.0f }
+                glm::vec3{ 0.2 }
             )
         };
         lightSourceShaderProgram.setUniform(
