@@ -284,7 +284,9 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
         lightingShaderProgram.setUniform("material.shininess", 64.0f);
-        lightingShaderProgram.setUniform("light.position", lightPos);
+        lightingShaderProgram.setUniform("light.position", camera->getPosition());
+        lightingShaderProgram.setUniform("light.direction", camera->getForwardVector());
+        lightingShaderProgram.setUniform("light.cutoff", glm::cos(glm::radians(12.5f)));
         lightingShaderProgram.setUniform("light.ambient", ambientColor);
         lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
         lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
@@ -332,7 +334,7 @@ int main(const int argc, char* argv[])
         }
 
         lightSourceShaderProgram.use();
-        lightSourceShaderProgram.setUniform("lightColor", lightColor);
+        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 0.0 });
         const auto lightSourceModelMatrix{
             glm::scale(
                 glm::translate(
