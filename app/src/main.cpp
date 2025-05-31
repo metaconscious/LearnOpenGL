@@ -74,6 +74,13 @@ glm::vec3 cubePositions[]{
     { -1.3f, 1.0f, -1.5f }
 };
 
+glm::vec3 pointLightPositions[]{
+    { 0.7f, 0.2f, 2.0f },
+    { 2.3f, -3.3f, -4.0f },
+    { -4.0f, 2.0f, -12.0f },
+    { 0.0f, 0.0f, -3.0f }
+};
+
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -260,19 +267,12 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    constexpr glm::vec3 lightPos{ 1.2f, 1.0f, 2.0f };
-
     lightingShaderProgram.use();
     lightingShaderProgram.setUniform("material.diffuse", 0);
     lightingShaderProgram.setUniform("material.specular", 1);
 
     while (!glfwWindowShouldClose(window))
     {
-        glm::vec3 lightColor{ 1.0f, 1.0f, 1.0f };
-
-        glm::vec3 ambientColor{ lightColor * glm::vec3{ 0.2f } };
-        glm::vec3 diffuseColor{ lightColor * glm::vec3{ 0.5f } };
-
         timeManager.update();
 
         cameraSystem.update(timeManager.getDeltaTime());
@@ -284,18 +284,31 @@ int main(const int argc, char* argv[])
 
         lightingShaderProgram.use();
         lightingShaderProgram.setUniform("material.shininess", 64.0f);
-        lightingShaderProgram.setUniform("light.position", camera->getPosition());
-        lightingShaderProgram.setUniform("light.direction", camera->getForwardVector());
-        lightingShaderProgram.setUniform("light.cutoff", glm::cos(glm::radians(12.5f)));
-        lightingShaderProgram.setUniform("light.outerCutoff", glm::cos(glm::radians(17.5f)));
-        lightingShaderProgram.setUniform("light.ambient", ambientColor);
-        lightingShaderProgram.setUniform("light.diffuse", diffuseColor);
-        lightingShaderProgram.setUniform("light.specular", 1.0f, 1.0f, 1.0f);
-        lightingShaderProgram.setUniform("light.constant", 1.0f);
-        lightingShaderProgram.setUniform("light.linear", 0.09f);
-        lightingShaderProgram.setUniform("light.quadratic", 0.032f);
+        lightingShaderProgram.setUniform("directionalLight.direction", -0.2f, -1.0f, -0.3f);
+        lightingShaderProgram.setUniform("directionalLight.ambient", glm::vec3{ 0.05f });
+        lightingShaderProgram.setUniform("directionalLight.diffuse", glm::vec3{ 0.4f });
+        lightingShaderProgram.setUniform("directionalLight.specular", glm::vec3{ 0.5 });
+        for (auto&& [index, position] : std::views::enumerate(pointLightPositions))
+        {
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].position", index), position);
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].ambient", index), glm::vec3{ 0.05 });
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].diffuse", index), glm::vec3{ 0.8f });
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].specular", index), glm::vec3{ 1.0f });
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].constant", index), 1.0f);
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].linear", index), 0.09f);
+            lightingShaderProgram.setUniform(std::format("pointLights[{}].quadratic", index), 0.032f);
+        }
+        lightingShaderProgram.setUniform("spotLight.position", camera->getPosition());
+        lightingShaderProgram.setUniform("spotLight.direction", camera->getForwardVector());
+        lightingShaderProgram.setUniform("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+        lightingShaderProgram.setUniform("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
+        lightingShaderProgram.setUniform("spotLight.ambient", glm::vec3{ 0.0f });
+        lightingShaderProgram.setUniform("spotLight.diffuse", glm::vec3{ 1.0f });
+        lightingShaderProgram.setUniform("spotLight.specular", glm::vec3{ 1.0f });
+        lightingShaderProgram.setUniform("spotLight.constant", 1.0f);
+        lightingShaderProgram.setUniform("spotLight.linear", 0.09f);
+        lightingShaderProgram.setUniform("spotLight.quadratic", 0.032f);
         lightingShaderProgram.setUniform("viewPos", camera->getPosition());
-        lightingShaderProgram.setUniform("objectColor", 1.0f, 0.5f, 0.31f);
 
         const auto viewMatrix{ camera->getViewMatrix() };
         const auto projectionMatrix{ camera->getProjectionMatrix() };
@@ -335,24 +348,28 @@ int main(const int argc, char* argv[])
         }
 
         lightSourceShaderProgram.use();
-        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 0.0 });
-        const auto lightSourceModelMatrix{
-            glm::scale(
-                glm::translate(
-                    glm::mat4{ 1.0f },
-                    lightPos
-                ),
-                glm::vec3{ 0.2 }
-            )
-        };
-        lightSourceShaderProgram.setUniform(
-            "model",
-            lightSourceModelMatrix
-        );
-        lightSourceShaderProgram.setUniform("view", viewMatrix);
-        lightSourceShaderProgram.setUniform("projection", projectionMatrix);
+        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 1.0 });
         glBindVertexArray(lightSourceVertexArrayObject);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (auto&& position : pointLightPositions)
+        {
+            const auto lightSourceModelMatrix{
+                glm::scale(
+                    glm::translate(
+                        glm::mat4{ 1.0f },
+                        position
+                    ),
+                    glm::vec3{ 0.2 }
+                )
+            };
+            lightSourceShaderProgram.setUniform(
+                "model",
+                lightSourceModelMatrix
+            );
+            lightSourceShaderProgram.setUniform("view", viewMatrix);
+            lightSourceShaderProgram.setUniform("projection", projectionMatrix);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
