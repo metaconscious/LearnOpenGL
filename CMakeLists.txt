@@ -11,6 +11,7 @@ find_package(glm CONFIG REQUIRED)
 find_package(Boost REQUIRED)
 find_package(PNG REQUIRED)
 find_package(JPEG REQUIRED)
+find_package(assimp REQUIRED)
 
 add_subdirectory(glad)
 add_subdirectory(app)

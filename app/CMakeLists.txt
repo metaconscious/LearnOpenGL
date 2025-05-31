@@ -28,7 +28,7 @@ target_include_directories(LearnOpenGLLibrary PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-target_link_libraries(LearnOpenGLLibrary PUBLIC OpenGL::GL glfw glad glm::glm Boost::boost PNG::PNG JPEG::JPEG)
+target_link_libraries(LearnOpenGLLibrary PUBLIC OpenGL::GL glfw glad glm::glm Boost::boost PNG::PNG JPEG::JPEG assimp::assimp)
 
 add_executable(LearnOpenGL src/main.cpp)
-target_link_libraries(LearnOpenGL PRIVATE LearnOpenGLLibrary OpenGL::GL glfw glad glm::glm Boost::boost PNG::PNG JPEG::JPEG)
+target_link_libraries(LearnOpenGL PRIVATE LearnOpenGLLibrary OpenGL::GL glfw glad glm::glm Boost::boost PNG::PNG JPEG::JPEG assimp::assimp)
