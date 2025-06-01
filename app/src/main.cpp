@@ -160,7 +160,7 @@ int main(const int argc, char* argv[])
     };
 
     const auto backpackModel{
-        lgl::Model::load("resources/models/backpack/backpack.obj")
+        lgl::Model::load("resources/models/cube/cube.obj")
     };
 
     GLuint lightSourceVertexArrayObject{};
@@ -195,7 +195,7 @@ int main(const int argc, char* argv[])
 
         processInput(window);
 
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         const auto viewMatrix{ camera->getViewMatrix() };
