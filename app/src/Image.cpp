@@ -4,9 +4,52 @@
 
 #include "app/Image.h"
 
+#include <ranges>
+
 namespace lgl
 {
-    TextureData loadImageAsTexture(const std::filesystem::path& filePath)
+    bool ImageData::isValid() const noexcept
+    {
+        return width > 0 && height > 0 && channels > 0 && !data.empty();
+    }
+
+    std::span<const std::byte> ImageData::span() const noexcept
+    {
+        return data;
+    }
+
+    ImageData ImageData::flipVertically() const
+    {
+        if (!isValid())
+        {
+            return *this; // Nothing to flip
+        }
+
+        // Calculate row size in bytes
+        const auto row_size{ width * channels };
+
+        return {
+            .data = std::views::iota(0u, height)
+            | std::views::transform([this, row_size](const uint32_t row_idx)
+            {
+                // Original row index from bottom to top
+                const auto flipped_idx{ height - 1 - row_idx };
+                // Get the span for this row
+                return std::span<const std::byte>{
+                    data.data() + flipped_idx * row_size,
+                    row_size
+                };
+            })
+            | std::views::join
+            | std::ranges::to<std::vector<std::byte>>(),
+            .width = width,
+            .height = height,
+            .channels = channels,
+            .pixelFormat = pixelFormat
+        };
+    }
+
+    ImageData loadImage(const std::filesystem::path& filePath)
     {
         // Check if file exists and is regular file
         if (!std::filesystem::exists(filePath) || !std::filesystem::is_regular_file(filePath))

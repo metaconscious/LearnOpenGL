@@ -7,6 +7,8 @@
 *.lo
 *.o
 *.obj
+# But NOT the model .obj files
+!app/resources/models/**/*.obj
 
 # Precompiled Headers
 *.gch

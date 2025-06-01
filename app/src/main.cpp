@@ -9,6 +9,7 @@
 #include "app/CameraSystem.h"
 #include "app/FirstPersonController.h"
 #include "app/Image.h"
+#include "app/Model.h"
 #include "app/PerspectiveCamera.h"
 #include "app/ShaderProgram.h"
 #include "app/TimeManager.h"
@@ -150,110 +151,29 @@ int main(const int argc, char* argv[])
     controller->setMoveSpeed(5.0f);
     controller->setMouseSensitivity(0.1f);
 
-    const auto diffuseTextureImage{
-        lgl::loadImageAsTexture(
-            "resources/textures/container2.png"
-        )
-       .flipVertically()
-    };
-    const auto specularTextureImage{
-        lgl::loadImageAsTexture(
-            "resources/textures/container2_specular.png"
-        )
-       .flipVertically()
+    const auto backpackShaderProgram{
+        lgl::ShaderProgram::load("shaders/backpack.vert", "shaders/backpack.frag")
     };
 
-    const auto lightingShaderProgram{
-        lgl::ShaderProgram::load("shaders/illuminated_object.vert", "shaders/illuminated_object.frag")
-    };
     const auto lightSourceShaderProgram{
         lgl::ShaderProgram::load("shaders/light_source.vert", "shaders/light_source.frag")
     };
 
-    GLuint lightingVertexArrayObject{};
-    glGenVertexArrays(1, &lightingVertexArrayObject);
-
-    GLuint vertexBufferObject{};
-    glGenBuffers(1, &vertexBufferObject);
-
-    glBindVertexArray(lightingVertexArrayObject);
-
-    glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    glVertexAttribPointer(0,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          nullptr);
-    glEnableVertexAttribArray(0);
-
-    glVertexAttribPointer(1,
-                          3,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(3 * sizeof(std::ranges::range_value_t<decltype(vertices)>)));
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(2,
-                          2,
-                          GL_FLOAT,
-                          GL_FALSE,
-                          8 * sizeof(std::ranges::range_value_t<decltype(vertices)>),
-                          reinterpret_cast<void*>(6 * sizeof(std::ranges::range_value_t<decltype(vertices)>)));
-    glEnableVertexAttribArray(2);
-
-    GLuint diffuseMap{};
-    glGenTextures(1, &diffuseMap);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        static_cast<GLsizei>(diffuseTextureImage.width),
-        static_cast<GLsizei>(diffuseTextureImage.height),
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        diffuseTextureImage.span().data()
-    );
-    glGenerateMipmap(GL_TEXTURE_2D);
-
-    GLuint specularMap{};
-    glGenTextures(1, &specularMap);
-    glBindTexture(GL_TEXTURE_2D, specularMap);
-
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-    glTexImage2D(
-        GL_TEXTURE_2D,
-        0,
-        GL_RGBA,
-        static_cast<GLsizei>(specularTextureImage.width),
-        static_cast<GLsizei>(specularTextureImage.height),
-        0,
-        GL_RGBA,
-        GL_UNSIGNED_BYTE,
-        specularTextureImage.span().data()
-    );
-    glGenerateMipmap(GL_TEXTURE_2D);
+    const auto backpackModel{
+        lgl::Model::load("resources/models/backpack/backpack.obj")
+    };
 
     GLuint lightSourceVertexArrayObject{};
     glGenVertexArrays(1, &lightSourceVertexArrayObject);
 
+    GLuint vertexBufferObject{};
+    glGenBuffers(1, &vertexBufferObject);
+
     glBindVertexArray(lightSourceVertexArrayObject);
+
     glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glVertexAttribPointer(0,
                           3,
@@ -267,10 +187,6 @@ int main(const int argc, char* argv[])
 
     glBindVertexArray(0); // Optional. DO NOT unbind EBO above this line or VAO will remember "NO EBO".
 
-    lightingShaderProgram.use();
-    lightingShaderProgram.setUniform("material.diffuse", 0);
-    lightingShaderProgram.setUniform("material.specular", 1);
-
     while (!glfwWindowShouldClose(window))
     {
         timeManager.update();
@@ -279,104 +195,81 @@ int main(const int argc, char* argv[])
 
         processInput(window);
 
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        lightingShaderProgram.use();
-        lightingShaderProgram.setUniform("material.shininess", 64.0f);
-        lightingShaderProgram.setUniform("directionalLight.direction", -0.2f, -1.0f, -0.3f);
-        lightingShaderProgram.setUniform("directionalLight.ambient", glm::vec3{ 0.05f });
-        lightingShaderProgram.setUniform("directionalLight.diffuse", glm::vec3{ 0.4f });
-        lightingShaderProgram.setUniform("directionalLight.specular", glm::vec3{ 0.5 });
-        for (auto&& [index, position] : std::views::enumerate(pointLightPositions))
-        {
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].position", index), position);
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].ambient", index), glm::vec3{ 0.05 });
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].diffuse", index), glm::vec3{ 0.8f });
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].specular", index), glm::vec3{ 1.0f });
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].constant", index), 1.0f);
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].linear", index), 0.09f);
-            lightingShaderProgram.setUniform(std::format("pointLights[{}].quadratic", index), 0.032f);
-        }
-        lightingShaderProgram.setUniform("spotLight.position", camera->getPosition());
-        lightingShaderProgram.setUniform("spotLight.direction", camera->getForwardVector());
-        lightingShaderProgram.setUniform("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
-        lightingShaderProgram.setUniform("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
-        lightingShaderProgram.setUniform("spotLight.ambient", glm::vec3{ 0.0f });
-        lightingShaderProgram.setUniform("spotLight.diffuse", glm::vec3{ 1.0f });
-        lightingShaderProgram.setUniform("spotLight.specular", glm::vec3{ 1.0f });
-        lightingShaderProgram.setUniform("spotLight.constant", 1.0f);
-        lightingShaderProgram.setUniform("spotLight.linear", 0.09f);
-        lightingShaderProgram.setUniform("spotLight.quadratic", 0.032f);
-        lightingShaderProgram.setUniform("viewPos", camera->getPosition());
 
         const auto viewMatrix{ camera->getViewMatrix() };
         const auto projectionMatrix{ camera->getProjectionMatrix() };
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, specularMap);
+        backpackShaderProgram.use();
+//        backpackShaderProgram.setUniform("directionalLight.direction", -0.2f, -1.0f, -0.3f);
+//        backpackShaderProgram.setUniform("directionalLight.ambient", glm::vec3{ 0.05f });
+//        backpackShaderProgram.setUniform("directionalLight.diffuse", glm::vec3{ 0.4f });
+//        backpackShaderProgram.setUniform("directionalLight.specular", glm::vec3{ 0.5 });
+//        for (auto&& [index, position] : std::views::enumerate(pointLightPositions))
+//        {
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].position", index), position);
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].ambient", index), glm::vec3{ 0.05 });
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].diffuse", index), glm::vec3{ 0.8f });
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].specular", index), glm::vec3{ 1.0f });
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].constant", index), 1.0f);
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].linear", index), 0.09f);
+//            backpackShaderProgram.setUniform(std::format("pointLights[{}].quadratic", index), 0.032f);
+//        }
+//        backpackShaderProgram.setUniform("spotLight.position", camera->getPosition());
+//        backpackShaderProgram.setUniform("spotLight.direction", camera->getForwardVector());
+//        backpackShaderProgram.setUniform("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+//        backpackShaderProgram.setUniform("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
+//        backpackShaderProgram.setUniform("spotLight.ambient", glm::vec3{ 0.0f });
+//        backpackShaderProgram.setUniform("spotLight.diffuse", glm::vec3{ 1.0f });
+//        backpackShaderProgram.setUniform("spotLight.specular", glm::vec3{ 1.0f });
+//        backpackShaderProgram.setUniform("spotLight.constant", 1.0f);
+//        backpackShaderProgram.setUniform("spotLight.linear", 0.09f);
+//        backpackShaderProgram.setUniform("spotLight.quadratic", 0.032f);
+        backpackShaderProgram.setUniform("viewPos", camera->getPosition());
 
-        glBindVertexArray(lightingVertexArrayObject);
+        constexpr glm::mat3 model{ 1.0f };
+        backpackShaderProgram.setUniform("model", model);
+        // Set view and projection matrices
+        backpackShaderProgram.setUniform("view", viewMatrix);
+        backpackShaderProgram.setUniform("projection", projectionMatrix);
+        // Calculate and set the normal matrix
+        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        backpackShaderProgram.setUniform("normalMatrix", normalMatrix);
+        // Set material shininess
+        backpackShaderProgram.setUniform("material.shininess", 64.0f);
 
-        for (auto&& [index, position] : std::views::enumerate(cubePositions))
-        {
-            const auto illuminatedObjectModelMatrix{
-                glm::rotate(
-                    glm::translate(glm::mat4{ 1.0f }, position),
-                    glm::radians(20.0f * static_cast<float>(index)),
-                    glm::vec3{ 1.0f, 0.3f, 0.5f }
-                )
-            };
-            const auto normalMatrix{ glm::transpose(glm::inverse(glm::mat3{ illuminatedObjectModelMatrix })) };
-            lightingShaderProgram.setUniform("normalMatrix", normalMatrix);
-            lightingShaderProgram.setUniform(
-                "model",
-                illuminatedObjectModelMatrix
-            );
-            lightingShaderProgram.setUniform(
-                "view",
-                viewMatrix
-            );
-            lightingShaderProgram.setUniform(
-                "projection",
-                projectionMatrix
-            );
+        backpackModel.draw(backpackShaderProgram);
 
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
-
-        lightSourceShaderProgram.use();
-        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 1.0 });
-        glBindVertexArray(lightSourceVertexArrayObject);
-        for (auto&& position : pointLightPositions)
-        {
-            const auto lightSourceModelMatrix{
-                glm::scale(
-                    glm::translate(
-                        glm::mat4{ 1.0f },
-                        position
-                    ),
-                    glm::vec3{ 0.2 }
-                )
-            };
-            lightSourceShaderProgram.setUniform(
-                "model",
-                lightSourceModelMatrix
-            );
-            lightSourceShaderProgram.setUniform("view", viewMatrix);
-            lightSourceShaderProgram.setUniform("projection", projectionMatrix);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+//        lightSourceShaderProgram.use();
+//        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 1.0 });
+//        glBindVertexArray(lightSourceVertexArrayObject);
+//        for (auto&& position : pointLightPositions)
+//        {
+//            const auto lightSourceModelMatrix{
+//                glm::scale(
+//                    glm::translate(
+//                        glm::mat4{ 1.0f },
+//                        position
+//                    ),
+//                    glm::vec3{ 0.2 }
+//                )
+//            };
+//            lightSourceShaderProgram.setUniform(
+//                "model",
+//                lightSourceModelMatrix
+//            );
+//            lightSourceShaderProgram.setUniform("view", viewMatrix);
+//            lightSourceShaderProgram.setUniform("projection", projectionMatrix);
+//
+//            glDrawArrays(GL_TRIANGLES, 0, 36);
+//        }
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
         glfwPollEvents(); // Processes the event queue and invoke appropriate callbacks
     }
 
-    glDeleteVertexArrays(1, &lightingVertexArrayObject);
     glDeleteBuffers(1, &lightSourceVertexArrayObject);
     glDeleteBuffers(1, &vertexBufferObject);
 

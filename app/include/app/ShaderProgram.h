@@ -6,6 +6,7 @@
 #define LEARNOPENGL_APP_SHADERPROGRAM_H
 
 #include <filesystem>
+#include <print>
 #include <string_view>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
@@ -104,7 +105,13 @@ namespace lgl
     template<typename... Args>
     void ShaderProgram::setUniform(const std::string_view name, Args... args) const
     {
-        setUniform(getUniformLocation(name), std::forward<Args>(args)...);
+        const auto location{ getUniformLocation(name) };
+        if (location == -1)
+        {
+//            std::println("Warning: Uniform '{}' not found (maybe optimized out)", name);
+            return;
+        }
+        setUniform(location, std::forward<Args>(args)...);
     }
 } // lgl
 

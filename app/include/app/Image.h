@@ -14,7 +14,6 @@
 #include <filesystem>
 #include <fstream>
 #include <print>
-#include <ranges>
 #include <span>
 #include <stdexcept>
 #include <type_traits>
@@ -31,55 +30,47 @@ namespace lgl
         // Extensible for future formats
     };
 
-    // Structure to hold texture data and metadata
-    struct TextureData
+    enum class PixelFormat
+    {
+        Unknown,
+        Red, // 1 channel (grayscale)
+        RG, // 2 channels (grayscale + alpha)
+        RGB, // 3 channels
+        RGBA // 4 channels
+    };
+
+    // Structure to hold image data and metadata
+    struct ImageData
     {
         std::vector<std::byte> data;
         uint32_t width{ 0 };
         uint32_t height{ 0 };
         uint8_t channels{ 0 };
+        PixelFormat pixelFormat{ PixelFormat::Unknown }; // Add this
+        [[nodiscard]] bool isValid() const noexcept;
+        [[nodiscard]] std::span<const std::byte> span() const noexcept;
+        [[nodiscard]] ImageData flipVertically() const;
 
-        [[nodiscard]] bool isValid() const noexcept
-        {
-            return width > 0 && height > 0 && channels > 0 && !data.empty();
-        }
-
-        // Helper for OpenGL texture creation
-        [[nodiscard]] std::span<const std::byte> span() const noexcept
-        {
-            return data;
-        }
-
-        [[nodiscard]] TextureData flipVertically() const
-        {
-            if (!isValid())
-            {
-                return *this; // Nothing to flip
-            }
-
-            // Calculate row size in bytes
-            const auto row_size = width * channels;
-
-            return {
-                .data = std::views::iota(0u, height)
-                | std::views::transform([this, row_size](uint32_t row_idx)
-                {
-                    // Original row index from bottom to top
-                    const auto flipped_idx = height - 1 - row_idx;
-                    // Get the span for this row
-                    return std::span<const std::byte>(
-                        data.data() + flipped_idx * row_size,
-                        row_size
-                    );
-                })
-                | std::views::join
-                | std::ranges::to<std::vector<std::byte>>(),
-                .width = width,
-                .height = height,
-                .channels = channels
-            };
-        }
+        // Helper to get pixel format from channel count
+        [[nodiscard]] static constexpr PixelFormat getPixelFormat(uint8_t channelCount) noexcept;
     };
+
+    constexpr PixelFormat ImageData::getPixelFormat(const uint8_t channelCount) noexcept
+    {
+        switch (channelCount)
+        {
+            case 1:
+                return PixelFormat::Red;
+            case 2:
+                return PixelFormat::RG;
+            case 3:
+                return PixelFormat::RGB;
+            case 4:
+                return PixelFormat::RGBA;
+            default:
+                return PixelFormat::Unknown;
+        }
+    }
 
     namespace detail
     {
@@ -117,7 +108,7 @@ namespace lgl
         {
             static_assert(Format != ImageFormat::Unknown, "Unknown or unsupported image format");
 
-            static TextureData read([[maybe_unused]] const std::filesystem::path& file_path)
+            static ImageData read([[maybe_unused]] const std::filesystem::path& file_path)
             {
                 throw std::runtime_error("Image format not implemented");
             }
@@ -127,9 +118,14 @@ namespace lgl
         template<>
         struct ImageReader<ImageFormat::JPEG>
         {
-            static TextureData read(const std::filesystem::path& file_path)
+            static ImageData read(const std::filesystem::path& file_path)
             {
-                boost::gil::rgb8_image_t img{};
+                // Use any_image to handle different channel counts
+                boost::gil::any_image<
+                    boost::gil::gray8_image_t,
+                    boost::gil::rgb8_image_t
+                > img;
+
                 try
                 {
                     boost::gil::read_image(file_path.string(), img, boost::gil::jpeg_tag{});
@@ -139,25 +135,48 @@ namespace lgl
                     std::println(stderr, "Failed to read JPEG: {}", e.what());
                     throw;
                 }
+                ImageData texture;
 
-                TextureData texture{
-                    .data = {},
-                    .width = static_cast<uint32_t>(img.width()),
-                    .height = static_cast<uint32_t>(img.height()),
-                    .channels = 3 // RGB
-                };
-
-                const auto total_size{ texture.width * texture.height * texture.channels };
-                texture.data.resize(total_size);
-
-                const auto view{ boost::gil::view(img) };
-                std::size_t i{ 0 };
-                for (const auto& pixel : view)
+                // Use variant2::visit instead of apply_operation
+                boost::variant2::visit([&texture]<typename T0>(T0&& typed_img)
                 {
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::red_t()));
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::green_t()));
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::blue_t()));
-                }
+                    using ImageType = std::decay_t<T0>;
+                    using PixelType = typename ImageType::value_type;
+
+                    texture.width = static_cast<uint32_t>(typed_img.width());
+                    texture.height = static_cast<uint32_t>(typed_img.height());
+                    texture.channels = boost::gil::num_channels<PixelType>::value;
+                    texture.pixelFormat = ImageData::getPixelFormat(texture.channels);
+
+                    const auto total_size{ texture.width * texture.height * texture.channels };
+                    texture.data.resize(total_size);
+
+                    const auto view{ boost::gil::view(typed_img) };
+                    std::size_t i{ 0 };
+
+                    if constexpr (boost::gil::num_channels<PixelType>::value == 1)
+                    {
+                        // Grayscale
+                        for (const auto& pixel : view)
+                        {
+                            // Extract the gray channel value
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::at_c<0>(pixel));
+                        }
+                    }
+                    else if constexpr (boost::gil::num_channels<PixelType>::value == 3)
+                    {
+                        // RGB
+                        for (const auto& pixel : view)
+                        {
+                            texture.data[i++] = static_cast<std::byte>(
+                                boost::gil::get_color(pixel, boost::gil::red_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::green_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::blue_t()));
+                        }
+                    }
+                }, img);
 
                 return texture;
             }
@@ -167,38 +186,93 @@ namespace lgl
         template<>
         struct ImageReader<ImageFormat::PNG>
         {
-            static TextureData read(const std::filesystem::path& filePath)
+            static ImageData read(const std::filesystem::path& file_path)
             {
-                boost::gil::rgba8_image_t img{};
+                // Use any_image to handle different PNG formats
+                boost::gil::any_image<
+                    boost::gil::gray8_image_t,
+                    boost::gil::gray_alpha8_image_t,
+                    boost::gil::rgb8_image_t,
+                    boost::gil::rgba8_image_t
+                > img;
+
                 try
                 {
-                    boost::gil::read_image(filePath.string(), img, boost::gil::png_tag{});
+                    boost::gil::read_image(file_path.string(), img, boost::gil::png_tag{});
                 }
                 catch (const std::exception& e)
                 {
                     std::println(stderr, "Failed to read PNG: {}", e.what());
                     throw;
                 }
+                ImageData texture;
 
-                TextureData texture{
-                    .data = {},
-                    .width = static_cast<uint32_t>(img.width()),
-                    .height = static_cast<uint32_t>(img.height()),
-                    .channels = 4
-                };
-
-                const auto total_size{ texture.width * texture.height * texture.channels };
-                texture.data.resize(total_size);
-
-                const auto view{ boost::gil::view(img) };
-                std::size_t i{ 0 };
-                for (const auto& pixel : view)
+                // Use variant2::visit instead of apply_operation
+                boost::variant2::visit([&texture]<typename T0>(T0&& typed_img)
                 {
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::red_t()));
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::green_t()));
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::blue_t()));
-                    texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(pixel, boost::gil::alpha_t()));
-                }
+                    using ImageType = std::decay_t<T0>;
+                    using PixelType = typename ImageType::value_type;
+
+                    texture.width = static_cast<uint32_t>(typed_img.width());
+                    texture.height = static_cast<uint32_t>(typed_img.height());
+                    texture.channels = boost::gil::num_channels<PixelType>::value;
+                    texture.pixelFormat = ImageData::getPixelFormat(texture.channels);
+
+                    const auto total_size = texture.width * texture.height * texture.channels;
+                    texture.data.resize(total_size);
+
+                    const auto view = boost::gil::view(typed_img);
+                    std::size_t i = 0;
+
+                    if constexpr (boost::gil::num_channels<PixelType>::value == 1)
+                    {
+                        // Grayscale
+                        for (const auto& pixel : view)
+                        {
+                            // Extract the gray channel value
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::at_c<0>(pixel));
+                        }
+                    }
+                    else if constexpr (boost::gil::num_channels<PixelType>::value == 2)
+                    {
+                        // Grayscale + Alpha
+                        for (const auto& pixel : view)
+                        {
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::gray_color_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::alpha_t()));
+                        }
+                    }
+                    else if constexpr (boost::gil::num_channels<PixelType>::value == 3)
+                    {
+                        // RGB
+                        for (const auto& pixel : view)
+                        {
+                            texture.data[i++] = static_cast<std::byte>(
+                                boost::gil::get_color(pixel, boost::gil::red_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::green_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::blue_t()));
+                        }
+                    }
+                    else if constexpr (boost::gil::num_channels<PixelType>::value == 4)
+                    {
+                        // RGBA
+                        for (const auto& pixel : view)
+                        {
+                            texture.data[i++] = static_cast<std::byte>(
+                                boost::gil::get_color(pixel, boost::gil::red_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::green_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::blue_t()));
+                            texture.data[i++] = static_cast<std::byte>(boost::gil::get_color(
+                                pixel, boost::gil::alpha_t()));
+                        }
+                    }
+                }, img);
 
                 return texture;
             }
@@ -212,11 +286,11 @@ namespace lgl
      * @return TextureData containing the image as bytes with metadata
      * @throws std::runtime_error if file is not a valid image or cannot be read
      */
-    [[nodiscard]] TextureData loadImageAsTexture(const std::filesystem::path& filePath);
+    [[nodiscard]] ImageData loadImage(const std::filesystem::path& filePath);
 
     // Helper method for if format is already known
     template<ImageFormat Format>
-    [[nodiscard]] TextureData loadImageAsTexture(const std::filesystem::path& file_path)
+    [[nodiscard]] ImageData loadImage(const std::filesystem::path& file_path)
     {
         if (!std::filesystem::exists(file_path) || !std::filesystem::is_regular_file(file_path))
         {

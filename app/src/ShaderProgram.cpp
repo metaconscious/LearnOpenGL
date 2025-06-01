@@ -55,13 +55,7 @@ namespace lgl
 
     GLint ShaderProgram::getUniformLocation(const std::string_view name) const
     {
-        const auto location{ glGetUniformLocation(m_programId, name.data()) };
-        if (location == -1)
-        {
-            std::println(stderr, "Uniform location '{}' not found", name);
-            throw std::runtime_error("Uniform location not found");
-        }
-        return location;
+        return glGetUniformLocation(m_programId, name.data());
     }
 
     void ShaderProgram::use() const

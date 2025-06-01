@@ -65,6 +65,6 @@ namespace lgl
                 throw std::runtime_error("Invalid/Unsupported shader type");
         }
     }
-} // csv
+} // lgl
 
 #endif //LEARNOPENGL_APP_SHADER_H
