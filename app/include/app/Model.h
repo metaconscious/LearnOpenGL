@@ -32,7 +32,7 @@ namespace lgl
         [[nodiscard]] const std::filesystem::path& directory() const noexcept;
 
     private:
-        explicit Model(std::filesystem::path  directory);
+        explicit Model(std::filesystem::path directory);
 
         void processNodes(const aiNode* node, const aiScene* scene);
 

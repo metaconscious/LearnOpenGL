@@ -8,6 +8,7 @@
 #include <filesystem>
 #include <format>
 #include <string_view>
+#include <unordered_map>
 #include <vector>
 #include <assimp/scene.h>
 #include <glad/glad.h>
@@ -86,6 +87,7 @@ namespace lgl
         handle_type m_elementBufferObject{ 0 };
 
         const Model* m_parent{ nullptr };
+        static std::unordered_map<std::filesystem::path, handle_type> s_textureCache;
 
         void setupMesh();
 
@@ -97,6 +99,8 @@ namespace lgl
                                                                      aiTextureType assimpTextureType) const;
 
         [[nodiscard]] static handle_type loadTextureFromFile(const std::filesystem::path& path);
+
+        static void clearTextureCache();
     };
 
     constexpr auto Mesh::elementSizeOf(std::ranges::sized_range auto&& range) noexcept

@@ -126,6 +126,8 @@ namespace lgl
         glBindVertexArray(0);
     }
 
+    std::unordered_map<std::filesystem::path, Mesh::handle_type> Mesh::s_textureCache{};
+
     void Mesh::setupMesh()
     {
         glGenVertexArrays(1, &m_vertexArrayObject);
@@ -202,7 +204,7 @@ namespace lgl
             MAX_BONE_INFLUENCE,
             GL_INT,
             static_cast<GLsizei>(elementSizeOf(m_vertices)),
-            reinterpret_cast<const GLvoid*>(offsetof(vertex_type, bitangent))
+            reinterpret_cast<const GLvoid*>(offsetof(vertex_type, boneIds))
         );
 
         glEnableVertexAttribArray(6);
@@ -212,7 +214,7 @@ namespace lgl
             GL_FLOAT,
             GL_FALSE,
             static_cast<GLsizei>(elementSizeOf(m_vertices)),
-            reinterpret_cast<const GLvoid*>(offsetof(vertex_type, bitangent))
+            reinterpret_cast<const GLvoid*>(offsetof(vertex_type, weights))
         );
 
         glBindVertexArray(0);
@@ -234,9 +236,20 @@ namespace lgl
         return textures;
     }
 
+
     Mesh::handle_type Mesh::loadTextureFromFile(const std::filesystem::path& path)
     {
-        const auto image{ loadImage(path).flipVertically() };
+        // Normalize the path to ensure consistent hashing
+        const auto normalizedPath{ path.lexically_normal() };
+
+        // Check if the texture is already in the cache
+        if (s_textureCache.contains(normalizedPath))
+        {
+            return s_textureCache.at(normalizedPath);
+        }
+
+        // Texture not in cache, load it
+        const auto image{ loadImage(normalizedPath).flipVertically() };
 
         GLuint mapId{};
         glGenTextures(1, &mapId);
@@ -264,6 +277,18 @@ namespace lgl
 
         glBindTexture(GL_TEXTURE_2D, 0);
 
+        // Store the texture in the cache
+        s_textureCache.emplace(normalizedPath, mapId);
+
         return mapId;
+    }
+
+    void Mesh::clearTextureCache()
+    {
+        for (auto textureId : s_textureCache | std::views::values)
+        {
+            glDeleteTextures(1, &textureId);
+        }
+        s_textureCache.clear();
     }
 } // lgl

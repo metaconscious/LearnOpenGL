@@ -160,7 +160,7 @@ int main(const int argc, char* argv[])
     };
 
     const auto backpackModel{
-        lgl::Model::load("resources/models/cube/cube.obj")
+        lgl::Model::load("resources/models/backpack/backpack.obj")
     };
 
     GLuint lightSourceVertexArrayObject{};
@@ -202,68 +202,68 @@ int main(const int argc, char* argv[])
         const auto projectionMatrix{ camera->getProjectionMatrix() };
 
         backpackShaderProgram.use();
-//        backpackShaderProgram.setUniform("directionalLight.direction", -0.2f, -1.0f, -0.3f);
-//        backpackShaderProgram.setUniform("directionalLight.ambient", glm::vec3{ 0.05f });
-//        backpackShaderProgram.setUniform("directionalLight.diffuse", glm::vec3{ 0.4f });
-//        backpackShaderProgram.setUniform("directionalLight.specular", glm::vec3{ 0.5 });
-//        for (auto&& [index, position] : std::views::enumerate(pointLightPositions))
-//        {
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].position", index), position);
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].ambient", index), glm::vec3{ 0.05 });
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].diffuse", index), glm::vec3{ 0.8f });
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].specular", index), glm::vec3{ 1.0f });
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].constant", index), 1.0f);
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].linear", index), 0.09f);
-//            backpackShaderProgram.setUniform(std::format("pointLights[{}].quadratic", index), 0.032f);
-//        }
-//        backpackShaderProgram.setUniform("spotLight.position", camera->getPosition());
-//        backpackShaderProgram.setUniform("spotLight.direction", camera->getForwardVector());
-//        backpackShaderProgram.setUniform("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
-//        backpackShaderProgram.setUniform("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
-//        backpackShaderProgram.setUniform("spotLight.ambient", glm::vec3{ 0.0f });
-//        backpackShaderProgram.setUniform("spotLight.diffuse", glm::vec3{ 1.0f });
-//        backpackShaderProgram.setUniform("spotLight.specular", glm::vec3{ 1.0f });
-//        backpackShaderProgram.setUniform("spotLight.constant", 1.0f);
-//        backpackShaderProgram.setUniform("spotLight.linear", 0.09f);
-//        backpackShaderProgram.setUniform("spotLight.quadratic", 0.032f);
+        backpackShaderProgram.setUniform("directionalLight.direction", -0.2f, -1.0f, -0.3f);
+        backpackShaderProgram.setUniform("directionalLight.ambient", glm::vec3{ 0.05f });
+        backpackShaderProgram.setUniform("directionalLight.diffuse", glm::vec3{ 0.4f });
+        backpackShaderProgram.setUniform("directionalLight.specular", glm::vec3{ 0.5 });
+        for (auto&& [index, position] : std::views::enumerate(pointLightPositions))
+        {
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].position", index), position);
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].ambient", index), glm::vec3{ 0.05 });
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].diffuse", index), glm::vec3{ 0.8f });
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].specular", index), glm::vec3{ 1.0f });
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].constant", index), 1.0f);
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].linear", index), 0.09f);
+            backpackShaderProgram.setUniform(std::format("pointLights[{}].quadratic", index), 0.032f);
+        }
+        backpackShaderProgram.setUniform("spotLight.position", camera->getPosition());
+        backpackShaderProgram.setUniform("spotLight.direction", camera->getForwardVector());
+        backpackShaderProgram.setUniform("spotLight.cutoff", glm::cos(glm::radians(12.5f)));
+        backpackShaderProgram.setUniform("spotLight.outerCutoff", glm::cos(glm::radians(15.0f)));
+        backpackShaderProgram.setUniform("spotLight.ambient", glm::vec3{ 0.0f });
+        backpackShaderProgram.setUniform("spotLight.diffuse", glm::vec3{ 1.0f });
+        backpackShaderProgram.setUniform("spotLight.specular", glm::vec3{ 1.0f });
+        backpackShaderProgram.setUniform("spotLight.constant", 1.0f);
+        backpackShaderProgram.setUniform("spotLight.linear", 0.09f);
+        backpackShaderProgram.setUniform("spotLight.quadratic", 0.032f);
         backpackShaderProgram.setUniform("viewPos", camera->getPosition());
 
-        constexpr glm::mat3 model{ 1.0f };
+        constexpr glm::mat4 model{ 1.0f };
         backpackShaderProgram.setUniform("model", model);
         // Set view and projection matrices
         backpackShaderProgram.setUniform("view", viewMatrix);
         backpackShaderProgram.setUniform("projection", projectionMatrix);
         // Calculate and set the normal matrix
-        glm::mat3 normalMatrix = glm::transpose(glm::inverse(glm::mat3(model)));
+        const auto normalMatrix{ glm::transpose(glm::inverse(glm::mat3{ model })) };
         backpackShaderProgram.setUniform("normalMatrix", normalMatrix);
         // Set material shininess
         backpackShaderProgram.setUniform("material.shininess", 64.0f);
 
         backpackModel.draw(backpackShaderProgram);
 
-//        lightSourceShaderProgram.use();
-//        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 1.0 });
-//        glBindVertexArray(lightSourceVertexArrayObject);
-//        for (auto&& position : pointLightPositions)
-//        {
-//            const auto lightSourceModelMatrix{
-//                glm::scale(
-//                    glm::translate(
-//                        glm::mat4{ 1.0f },
-//                        position
-//                    ),
-//                    glm::vec3{ 0.2 }
-//                )
-//            };
-//            lightSourceShaderProgram.setUniform(
-//                "model",
-//                lightSourceModelMatrix
-//            );
-//            lightSourceShaderProgram.setUniform("view", viewMatrix);
-//            lightSourceShaderProgram.setUniform("projection", projectionMatrix);
-//
-//            glDrawArrays(GL_TRIANGLES, 0, 36);
-//        }
+        lightSourceShaderProgram.use();
+        lightSourceShaderProgram.setUniform("lightColor", glm::vec3{ 1.0 });
+        glBindVertexArray(lightSourceVertexArrayObject);
+        for (auto&& position : pointLightPositions)
+        {
+            const auto lightSourceModelMatrix{
+                glm::scale(
+                    glm::translate(
+                        glm::mat4{ 1.0f },
+                        position
+                    ),
+                    glm::vec3{ 0.2 }
+                )
+            };
+            lightSourceShaderProgram.setUniform(
+                "model",
+                lightSourceModelMatrix
+            );
+            lightSourceShaderProgram.setUniform("view", viewMatrix);
+            lightSourceShaderProgram.setUniform("projection", projectionMatrix);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
         // Note: double buffer is used by default for modern OpenGL
         glfwSwapBuffers(window); // Swap back buffer to front as front buffer
