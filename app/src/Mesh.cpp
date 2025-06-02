@@ -57,6 +57,11 @@ namespace lgl
         m_textures.append_range(loadMaterialTextures(material, aiTextureType_NORMALS));
         m_textures.append_range(loadMaterialTextures(material, aiTextureType_HEIGHT));
 
+        if (m_textures.empty())
+        {
+            std::println(stderr, "No texture is loaded");
+        }
+
         setupMesh();
     }
 
@@ -228,7 +233,15 @@ namespace lgl
         {
             aiString textureFilename{};
             material->GetTexture(assimpTextureType, i, &textureFilename);
-            std::filesystem::path path{ m_parent->directory() / textureFilename.C_Str() };
+            std::string texturePath{ textureFilename.C_Str() };
+#ifndef _WIN32
+            std::ranges::replace(texturePath, '\\', '/');
+#endif
+            const auto path{
+                std::filesystem::canonical(m_parent->directory() / texturePath)
+               .make_preferred()
+               .lexically_normal()
+            };
             textures.emplace_back(loadTextureFromFile(path),
                                   from(assimpTextureType),
                                   path);
@@ -239,17 +252,14 @@ namespace lgl
 
     Mesh::handle_type Mesh::loadTextureFromFile(const std::filesystem::path& path)
     {
-        // Normalize the path to ensure consistent hashing
-        const auto normalizedPath{ path.lexically_normal() };
-
         // Check if the texture is already in the cache
-        if (s_textureCache.contains(normalizedPath))
+        if (s_textureCache.contains(path))
         {
-            return s_textureCache.at(normalizedPath);
+            return s_textureCache.at(path);
         }
 
         // Texture not in cache, load it
-        const auto image{ loadImage(normalizedPath).flipVertically() };
+        const auto image{ loadImage(path).flipVertically() };
 
         GLuint mapId{};
         glGenTextures(1, &mapId);
@@ -278,7 +288,7 @@ namespace lgl
         glBindTexture(GL_TEXTURE_2D, 0);
 
         // Store the texture in the cache
-        s_textureCache.emplace(normalizedPath, mapId);
+        s_textureCache.emplace(path, mapId);
 
         return mapId;
     }
